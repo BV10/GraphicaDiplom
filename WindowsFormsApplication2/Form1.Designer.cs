@@ -60,11 +60,10 @@
             // 
             this.panelPaint.BackColor = System.Drawing.SystemColors.Control;
             this.panelPaint.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelPaint.Location = new System.Drawing.Point(175, 24);
+            this.panelPaint.Location = new System.Drawing.Point(176, 27);
             this.panelPaint.Name = "panelPaint";
             this.panelPaint.Size = new System.Drawing.Size(910, 470);
-            this.panelPaint.TabIndex = 0;
-            this.panelPaint.Paint += new System.Windows.Forms.PaintEventHandler(this.panelPaint_Paint);
+            this.panelPaint.TabIndex = 0;            
             this.panelPaint.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
             this.panelPaint.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDoubleClick);
             this.panelPaint.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -28,11 +29,12 @@ namespace WindowsFormsApplication2
     {
         private int SizeSideSquare { get; set; }
         public int RadiusOfCircle { get; private set; }
+        public Color ColorPouring { get; private set; }
 
-        Color CurrentColor = Color.Black;        
+        Color CurrentColor = Color.Black;
         bool ifPressed = false;
         bool ifPressed1 = false;
-        bool  pen = false;
+        bool pen = false;
         Point CurrentPoint;
         Point CurrentPoint_1;
         Point CurrentPoint_2;
@@ -46,70 +48,125 @@ namespace WindowsFormsApplication2
         Point PrevPoint_1;
         Point PrevPoint_2;
         int counter = 0;
-        int x, y,l,m,k,s;
+        int x, y, l, m, k, s;
         Graphics g;
-        Bitmap bmp;
+        Bitmap bmpFromPanel;
         Pen currentPen;
 
         bool isPouring = false;
 
-        void floodFill(int x, int y, Color oldcolor, Color newcolor)
-        {        
+        private Bitmap PaintZone(Bitmap sourceImage, int x, int y, Color color, Color borderColor)
+        {
+            Bitmap image = (Bitmap)sourceImage.Clone();
+            Stack<Point> points = new Stack<Point>();
+            points.Push(new Point(x, y));
 
-            Stack<Point> stackPixels = new Stack<Point>();  
-
-            //1.Поместить затравочный пиксел в стек;
-            stackPixels.Push(new Point(x, y));
-
-            Point currentPixel;
-            do
+            Point currentPoint;
+            while (points.Count != 0)
             {
-                //2.Извлечь пиксел из стека;
-                currentPixel = stackPixels.Pop();
-                //3.Присвоить пикселу требуемое значение(цвет внутренней области);
-                ////bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
-                //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
-                
+                currentPoint = points.Pop();
+                image.SetPixel(currentPoint.X, currentPoint.Y, color);
 
-                //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
-
-                // 4.Каждый окрестный пиксел добавить в стек, если он
-
-                //4.1.Не является граничным;                
-                if (currentPixel.X-1 > 0 && currentPixel.X-1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+                if (currentPoint.X > 0 && currentPoint.X < image.Width && currentPoint.Y + 1 > 0 && currentPoint.Y + 1 < image.Height)
                 {
-                    //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
-                    if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    Color topPixel = image.GetPixel(currentPoint.X, currentPoint.Y + 1);
+                    if (topPixel.ToArgb() != borderColor.ToArgb() && topPixel.ToArgb() != color.ToArgb())
                     {
-                        stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
+                        points.Push(new Point(currentPoint.X, currentPoint.Y + 1));
                     }
                 }
 
-                if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+                if (currentPoint.X + 1 > 0 && currentPoint.X + 1 < image.Width && currentPoint.Y > 0 && currentPoint.Y < image.Height)
                 {
-                    if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    Color rightPixel = image.GetPixel(currentPoint.X + 1, currentPoint.Y);
+                    if (rightPixel.ToArgb() != borderColor.ToArgb() && rightPixel.ToArgb() != color.ToArgb())
                     {
-                        stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
+                        points.Push(new Point(currentPoint.X + 1, currentPoint.Y));
                     }
                 }
 
-                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb())
-                    {
-                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
-                    }
-                }
 
-                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
+                if (currentPoint.X > 0 && currentPoint.X < image.Width && currentPoint.Y - 1 > 0 && currentPoint.Y - 1 < image.Height)
                 {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb())
+                    Color bottomPixel = image.GetPixel(currentPoint.X, currentPoint.Y - 1);
+                    if (bottomPixel.ToArgb() != borderColor.ToArgb() && bottomPixel.ToArgb() != color.ToArgb())
                     {
-                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
+                        points.Push(new Point(currentPoint.X, currentPoint.Y - 1));
                     }
                 }
-            } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2            
+                if (currentPoint.X - 1 > 0 && currentPoint.X - 1 < image.Width && currentPoint.Y > 0 && currentPoint.Y < image.Height)
+                {
+                    Color leftPixel = image.GetPixel(currentPoint.X - 1, currentPoint.Y);
+                    if (leftPixel.ToArgb() != borderColor.ToArgb() && leftPixel.ToArgb() != color.ToArgb())
+                    {
+                        points.Push(new Point(currentPoint.X - 1, currentPoint.Y));
+                    }
+                }
+            }
+
+            return image;
         }
+
+        //void floodFill(int x, int y, Color oldcolor, Color newcolor)
+        //{        
+
+        //    Stack<Point> stackPixels = new Stack<Point>();  
+
+        //    //1.Поместить затравочный пиксел в стек;
+        //    stackPixels.Push(new Point(x, y));
+
+        //    Point currentPixel;
+        //    do
+        //    {
+        //        //2.Извлечь пиксел из стека;
+        //        currentPixel = stackPixels.Pop();
+        //        //3.Присвоить пикселу требуемое значение(цвет внутренней области);
+        //        ////bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
+        //        //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
+
+
+        //        //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
+
+        //        // 4.Каждый окрестный пиксел добавить в стек, если он
+
+        //        //4.1.Не является граничным;                
+        //        if (currentPixel.X-1 > 0 && currentPixel.X-1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+        //        {
+        //            //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
+        //            if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
+        //            }
+        //        }
+
+        //        if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+        //        {
+        //            if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
+        //            }
+        //        }
+
+        //        if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
+        //        {
+        //            if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
+        //            }
+        //        }
+
+        //        if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
+        //        {
+        //            if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
+        //            }
+        //        }
+        //    } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2            
+        //}
+
+       
+
 
         public void drawesLines(Point CurrentPoint_1, Point CurrentPoint_2)
         {
@@ -134,7 +191,7 @@ namespace WindowsFormsApplication2
                 }
             }
 
-           
+
         }
 
         public void drawesLinesY(Point CurrentPoint_1, Point CurrentPoint_2)
@@ -158,7 +215,7 @@ namespace WindowsFormsApplication2
                     p.FillRectangle(new SolidBrush(CurrentColor), (float)xN, (float)i, currentPen.Width, currentPen.Width);
                 }
             }
-            
+
         }
 
         public void drawesCircles(Point CurrentPoint_1, double r)
@@ -186,7 +243,7 @@ namespace WindowsFormsApplication2
 
             for (double i = CurrentPoint_1.X - r; i <= CurrentPoint_1.X; i += 0.001)
             {
-                double yN = CurrentPoint_1.Y  - Math.Sqrt(r * r - Math.Pow((i - CurrentPoint_1.X), 2.0)) ;
+                double yN = CurrentPoint_1.Y - Math.Sqrt(r * r - Math.Pow((i - CurrentPoint_1.X), 2.0));
                 p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
             }
 
@@ -195,10 +252,10 @@ namespace WindowsFormsApplication2
         }
         public Form1()
         {
-            
+
             InitializeComponent();
-            g = panelPaint.CreateGraphics();            
-            currentPen = new Pen(CurrentColor, float.Parse(tBoxThicknessLine.Text));         
+            g = panelPaint.CreateGraphics();
+            currentPen = new Pen(CurrentColor, float.Parse(tBoxThicknessLine.Text));
         }
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
@@ -214,7 +271,7 @@ namespace WindowsFormsApplication2
                 PrevPoint = CurrentPoint;
                 CurrentPoint = e.Location;
                 for_paint();
-                
+
             }
         }
 
@@ -222,18 +279,24 @@ namespace WindowsFormsApplication2
         {
             ifPressed = true;
             CurrentPoint = e.Location;
+        } 
+       
+        
 
-
-
-        }
         private void panel1_MouseClick(object sender, MouseEventArgs e)
         {
-            if(isPouring) // mode of pouring
+            if (isPouring) // mode of pouring
             {
-                bmp = new Bitmap(panelPaint.Width, panelPaint.Height);
-                panelPaint.DrawToBitmap(bmp, new Rectangle(0, 0, panelPaint.Width, panelPaint.Height));
+                // bit map of panel
+                Bitmap bmOfPanel = new Bitmap(this.panelPaint.Width, this.panelPaint.Height);
+                Graphics grBitMap = Graphics.FromImage(bmOfPanel);
+                Rectangle rect = panelPaint.RectangleToScreen(panelPaint.ClientRectangle);
+                grBitMap.CopyFromScreen(rect.Location, Point.Empty, panelPaint.ClientSize);
 
-                floodFill(e.Location.X, e.Location.Y,  bmp.GetPixel(e.Location.X, e.Location.Y), CurrentColor);
+                // get new bitmap with pouring
+                Bitmap newImageForPanel = PaintZone(bmOfPanel, e.Location.X, e.Location.Y, ColorPouring, CurrentColor);
+                panelPaint.BackgroundImage = newImageForPanel;  
+              
                 return;
             }
 
@@ -249,35 +312,37 @@ namespace WindowsFormsApplication2
                     p.DrawEllipse(currentPen, l, m, currentPen.Width, currentPen.Width);
                     p.FillEllipse(new SolidBrush(CurrentColor), l, m, currentPen.Width, currentPen.Width);
                 }
-               
+
 
                 counter++;
                 switch (counter)
                 {
-                    case 1: CurrentPoint_2 = CurrentPoint_1; //++
+                    case 1:
+                        CurrentPoint_2 = CurrentPoint_1; //++
                         CurrentPoint_1 = e.Location; //++ 
                         x = e.X;
                         y = e.Y;
                         break;
 
-                    
 
-                    case 3: CurrentPoint_4 = CurrentPoint_3; //++
+
+                    case 3:
+                        CurrentPoint_4 = CurrentPoint_3; //++
                         CurrentPoint_3 = e.Location; //++ 
                         break;
 
                 }
             }
 
-            CurrentPoint_3 = CurrentPoint_2; 
+            CurrentPoint_3 = CurrentPoint_2;
             CurrentPoint_2 = e.Location;
-            
+
 
         }
 
         private void panel1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-           
+
         }
 
         private void butColor_Click(object sender, EventArgs e)
@@ -287,7 +352,7 @@ namespace WindowsFormsApplication2
 
             DialogResult D = colorDialog1.ShowDialog();
             if (D == System.Windows.Forms.DialogResult.OK)
-            {                
+            {
                 CurrentColor = colorDialog1.Color;
                 currentPen.Color = CurrentColor;
             }
@@ -352,7 +417,7 @@ namespace WindowsFormsApplication2
 
             //MessageBox.Show("Вы выбрали инструмент - <Треугольник>. Для того что бы построить треугольник, вам нужно выбрать цвет(по желанию), поставить три точки на области для рисования, и нажать кнопку <Построить>.");
             thr = true;
-          // panel1.Refresh();
+            // panel1.Refresh();
             Point CurrentPoint_1 = new Point(0, 0);
             Point CurrentPoint_2 = new Point(0, 0);
             Point CurrentPoint_3 = new Point(0, 0);
@@ -405,7 +470,7 @@ namespace WindowsFormsApplication2
 
             if (line == true)
             {
-                
+
                 drawesLines(CurrentPoint_1, CurrentPoint_2);
 
                 line = false;
@@ -415,7 +480,7 @@ namespace WindowsFormsApplication2
                 drawesLines(CurrentPoint_1, CurrentPoint_2);
                 drawesLines(CurrentPoint_2, CurrentPoint_3);
                 drawesLines(CurrentPoint_3, CurrentPoint_4);
-                
+
                 thr = false;
             }
             if (kr == true)
@@ -425,8 +490,8 @@ namespace WindowsFormsApplication2
             }
             if (kvad == true)
             {
-                drawesLines(new Point(x, y),new Point(x+SizeSideSquare, y));
-                drawesLinesY(new Point(x + SizeSideSquare, y), new Point(x + SizeSideSquare, y+ SizeSideSquare));
+                drawesLines(new Point(x, y), new Point(x + SizeSideSquare, y));
+                drawesLinesY(new Point(x + SizeSideSquare, y), new Point(x + SizeSideSquare, y + SizeSideSquare));
                 drawesLines(new Point(x + SizeSideSquare, y + SizeSideSquare), new Point(x, y + SizeSideSquare));
                 drawesLinesY(new Point(x, y + SizeSideSquare), new Point(x, y));
                 kvad = false;
@@ -443,18 +508,18 @@ namespace WindowsFormsApplication2
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            bmp = new Bitmap(panelPaint.Width, panelPaint.Height);
+            bmpFromPanel = new Bitmap(panelPaint.Width, panelPaint.Height);
         }
 
         private void выходToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
-                MessageBoxButtons msb = MessageBoxButtons.YesNo;
-                String message = "Вы действительно хотите выйти?";
-                String caption = "Выход";
-                if (MessageBox.Show(message, caption, msb) == DialogResult.Yes)
-                    this.Close();
-            
+
+            MessageBoxButtons msb = MessageBoxButtons.YesNo;
+            String message = "Вы действительно хотите выйти?";
+            String caption = "Выход";
+            if (MessageBox.Show(message, caption, msb) == DialogResult.Yes)
+                this.Close();
+
         }
 
         private void button7_Click(object sender, EventArgs e)
@@ -476,24 +541,27 @@ namespace WindowsFormsApplication2
 
         private void butPouring_Click(object sender, EventArgs e)
         {
-            panelPaint.Cursor = Cursors.Cross;
-            isPouring = true;
+            // dialog choose color for pouring
+            DialogResult D = colorDialog1.ShowDialog();
+            if (D == System.Windows.Forms.DialogResult.OK)
+            {
+                ColorPouring = colorDialog1.Color;
+
+                panelPaint.Cursor = Cursors.Cross; // change cursor for pouring
+                isPouring = true; // set pouring
+            }
+
         }
 
         private void resetPouring()
-        {           
-           isPouring = false;
+        {
+            isPouring = false;
         }
 
         private void resetCursorOfPanel()
         {
-            if(panelPaint.Cursor != Cursors.Arrow)
+            if (panelPaint.Cursor != Cursors.Arrow)
                 panelPaint.Cursor = Cursors.Arrow;
-        }
-
-        private void panelPaint_Paint(object sender, PaintEventArgs e)
-        {
-
         }
 
         private void Form1_Shown(object sender, EventArgs e)
@@ -558,6 +626,6 @@ namespace WindowsFormsApplication2
             butBuildChoseFigure.Focus();
         }
 
-       
+
     }
 }
