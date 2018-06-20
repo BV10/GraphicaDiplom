@@ -8,19 +8,20 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WindowsFormsApplication2.MyFigures;
 
-//TODO: растровая заливка
+
+//HACK: растровая заливка
 //HACK: круг - радиус
 //HACK: квадрат - стороны
-//TODO: скорость отрисовки
 //HACK: несколько фигур на полотне
 //HACK: регулировка толщины линий
-//TODO: сохранять изображения
-//TODO: масштабирование
+//HACK: сохранять изображения
+//HACK: масштабирование
 //TODO: окошко для демонстрации работы
 //UNDONE: срок -пятница
 //TODO: количество точек за секунду
-//TODO: качественнее круг
+//HACK: качественнее круг
 //HACK: побольше панель
 
 namespace WindowsFormsApplication2
@@ -32,8 +33,7 @@ namespace WindowsFormsApplication2
         public Color ColorPouring { get; private set; }
 
         Color CurrentColor = Color.Black;
-        bool ifPressed = false;
-        bool ifPressed1 = false;
+        bool ifPressed = false; 
         bool pen = false;
         Point CurrentPoint;
         Point CurrentPoint_1;
@@ -44,14 +44,17 @@ namespace WindowsFormsApplication2
         bool thr = false;
         bool kr = false;
         bool kvad = false;
-        Point PrevPoint;
-        Point PrevPoint_1;
-        Point PrevPoint_2;
+        Point PrevPoint;    
         int counter = 0;
         int x, y, l, m, k, s;
-        Graphics g;
-        Bitmap bmpFromPanel;
+        Graphics g;       
         Pen currentPen;
+
+        Queue<Point> calculatedPoints = new Queue<Point>();
+        CalcPointsFigureAsync calcPointsAsync = new CalcPointsFigureAsync();
+
+        private uint DotesPerSecond { get; set; }
+        public int MillisecOnDote { get; private set; }
 
         bool isPouring = false;
 
@@ -107,88 +110,170 @@ namespace WindowsFormsApplication2
             return image;
         }
 
-        //void floodFill(int x, int y, Color oldcolor, Color newcolor)
-        //{        
-
-        //    Stack<Point> stackPixels = new Stack<Point>();  
-
-        //    //1.Поместить затравочный пиксел в стек;
-        //    stackPixels.Push(new Point(x, y));
-
-        //    Point currentPixel;
-        //    do
-        //    {
-        //        //2.Извлечь пиксел из стека;
-        //        currentPixel = stackPixels.Pop();
-        //        //3.Присвоить пикселу требуемое значение(цвет внутренней области);
-        //        ////bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
-        //        //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
 
 
-        //        //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
+        Bitmap floodFill(Bitmap sourceImage, int x, int y, Color oldcolor, Color newcolor)
+        {
+            Bitmap bmp = (Bitmap)sourceImage.Clone();            
 
-        //        // 4.Каждый окрестный пиксел добавить в стек, если он
+            Stack<Point> stackPixels = new Stack<Point>();
 
-        //        //4.1.Не является граничным;                
-        //        if (currentPixel.X-1 > 0 && currentPixel.X-1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
-        //        {
-        //            //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
-        //            if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
-        //            {
-        //                stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
-        //            }
-        //        }
+            //1.Поместить затравочный пиксел в стек;
+            stackPixels.Push(new Point(x, y));
 
-        //        if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
-        //        {
-        //            if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
-        //            {
-        //                stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
-        //            }
-        //        }
+            Point currentPixel;
+            do
+            {
+                //2.Извлечь пиксел из стека;
+                currentPixel = stackPixels.Pop();
+                //3.Присвоить пикселу требуемое значение(цвет внутренней области);
+                bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
+                //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
 
-        //        if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
-        //        {
-        //            if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb())
-        //            {
-        //                stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
-        //            }
-        //        }
 
-        //        if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
-        //        {
-        //            if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb())
-        //            {
-        //                stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
-        //            }
-        //        }
-        //    } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2            
-        //}
+                //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
 
-       
+                // 4.Каждый окрестный пиксел добавить в стек, если он
 
+                //4.1.Не является граничным;                
+                if (currentPixel.X - 1 > 0 && currentPixel.X - 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+                {
+                    //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
+                    if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    {
+                        stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
+                    }
+                }
+
+                if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+                {
+                    if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    {
+                        stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
+                    }
+                }
+
+                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
+                {
+                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb())
+                    {
+                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
+                    }
+                }
+
+                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
+                {
+                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb())
+                    {
+                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
+                    }
+                }
+            } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2    
+
+            return bmp;
+        }
+
+        void BresenhamCircle(int x0, int y0, int radius)
+        {
+            Graphics p = Graphics.FromHwnd(panelPaint.Handle);
+
+            int x = radius;
+            int y = 0;
+            int radiusError = 1 - x;
+            while (x >= y)
+            {
+                p.FillRectangle(new SolidBrush(CurrentColor), x + x0, y + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), y + x0, x + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), -x + x0, y + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), -y + x0, x + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), -x + x0, -y + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), -y + x0, -x + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), x + x0, -y + y0, currentPen.Width, currentPen.Width);
+                p.FillRectangle(new SolidBrush(CurrentColor), y + x0, -x + y0, currentPen.Width, currentPen.Width);                
+                y++;
+                if (radiusError < 0)
+                {
+                    radiusError += 2 * y + 1;
+                }
+                else
+                {
+                    x--;
+                    radiusError += 2 * (y - x + 1);
+                }
+            }
+        }
+
+        void BresenhamLine(int x0, int y0, int x1, int y1)
+        {
+            Graphics p = Graphics.FromHwnd(panelPaint.Handle);
+
+            var steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0); // Проверяем рост отрезка по оси икс и по оси игрек
+                                                               // Отражаем линию по диагонали, если угол наклона слишком большой
+            if (steep)
+            {
+                Swap(ref x0, ref y0); // Перетасовка координат вынесена в отдельную функцию для красоты
+                Swap(ref x1, ref y1);
+            }
+            // Если линия растёт не слева направо, то меняем начало и конец отрезка местами
+            if (x0 > x1)
+            {
+                Swap(ref x0, ref x1);
+                Swap(ref y0, ref y1);
+            }
+            int dx = x1 - x0;
+            int dy = Math.Abs(y1 - y0);
+            int error = dx / 2; // Здесь используется оптимизация с умножением на dx, чтобы избавиться от лишних дробей
+            int ystep = (y0 < y1) ? 1 : -1; // Выбираем направление роста координаты y
+            int y = y0;
+            for (int x = x0; x <= x1; x++)
+            {
+                p.FillRectangle(new SolidBrush(CurrentColor), steep ? y : x, steep ? x : y, currentPen.Width, currentPen.Width); // Не забываем вернуть координаты на место
+                error -= dy;
+                if (error < 0)
+                {
+                    y += ystep;
+                    error += dx;
+                }
+            }
+        }
+
+        void Swap(ref int t1, ref int t2)
+        {
+            int temp = t1;
+            t1 = t2;
+            t2 = temp;
+        }
 
         public void drawesLines(Point CurrentPoint_1, Point CurrentPoint_2)
         {
-
             Graphics p = Graphics.FromHwnd(panelPaint.Handle);
 
             if (CurrentPoint_1.X > CurrentPoint_2.X)
             {
-
                 for (double i = CurrentPoint_1.X; i >= CurrentPoint_2.X; i -= 0.01)
                 {
+                    //TimeDrawing.BegDraw(); // time adjustment(beg draw line)
+
                     double yN = (CurrentPoint_2.Y - CurrentPoint_1.Y) * (i - CurrentPoint_1.X) / (CurrentPoint_2.X - CurrentPoint_1.X) + CurrentPoint_1.Y;
+
                     p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
+
+                    //TimeDrawing.EndDraw(); // time adjustment(end draw line)
                 }
             }
             else
             {
                 for (double i = CurrentPoint_1.X; i <= CurrentPoint_2.X; i += 0.01)
                 {
+                    //TimeDrawing.BegDraw(); // time adjustment(beg draw line)
+
                     double yN = (CurrentPoint_2.Y - CurrentPoint_1.Y) * (i - CurrentPoint_1.X) / (CurrentPoint_2.X - CurrentPoint_1.X) + CurrentPoint_1.Y;
                     p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
+
+                    //TimeDrawing.EndDraw(); // time adjustment(end draw line)
                 }
+
+                
             }
 
 
@@ -203,16 +288,24 @@ namespace WindowsFormsApplication2
             {
                 for (double i = CurrentPoint_1.Y; i >= CurrentPoint_2.Y; i -= 0.01)
                 {
+                   // TimeDrawing.BegDraw(); // time adjustment(beg draw line)
+
                     double xN = (CurrentPoint_2.X - CurrentPoint_1.X) * (i - CurrentPoint_1.Y) / (CurrentPoint_2.Y - CurrentPoint_1.Y) + CurrentPoint_1.X;
                     p.FillRectangle(new SolidBrush(CurrentColor), (float)xN, (float)i, currentPen.Width, currentPen.Width);
+
+                    //TimeDrawing.EndDraw(); // time adjustment(end draw line)
                 }
             }
             else
             {
                 for (double i = CurrentPoint_1.Y; i <= CurrentPoint_2.Y; i += 0.01)
                 {
+                    //TimeDrawing.BegDraw(); // time adjustment(beg draw line)
+
                     double xN = (CurrentPoint_2.X - CurrentPoint_1.X) * (i - CurrentPoint_1.Y) / (CurrentPoint_2.Y - CurrentPoint_1.Y) + CurrentPoint_1.X;
                     p.FillRectangle(new SolidBrush(CurrentColor), (float)xN, (float)i, currentPen.Width, currentPen.Width);
+
+                    //TimeDrawing.EndDraw(); // time adjustment(end draw line)
                 }
             }
 
@@ -222,26 +315,26 @@ namespace WindowsFormsApplication2
         {
             Graphics p = Graphics.FromHwnd(panelPaint.Handle);
 
-            for (double i = CurrentPoint_1.X; i <= CurrentPoint_1.X + r; i += 0.001)
+            for (double i = CurrentPoint_1.X; i <= CurrentPoint_1.X + r; i += 0.01)
             {
                 double yN = Math.Abs(Math.Sqrt(r * r - Math.Pow((i - CurrentPoint_1.X), 2.0)) + CurrentPoint_1.Y);
                 p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
             }
 
-            for (double i = CurrentPoint_1.X + r; i >= CurrentPoint_1.X; i -= 0.001)
+            for (double i = CurrentPoint_1.X + r; i >= CurrentPoint_1.X; i -= 0.01)
             {
                 double yN = CurrentPoint_1.Y - Math.Abs(Math.Sqrt(r * r - Math.Pow((i - CurrentPoint_1.X), 2.0)));
                 p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
             }
 
-            for (double i = CurrentPoint_1.X; i >= CurrentPoint_1.X - r; i -= 0.001)
+            for (double i = CurrentPoint_1.X; i >= CurrentPoint_1.X - r; i -= 0.01)
             {
                 double yN = CurrentPoint_1.Y + Math.Sqrt(r * r - Math.Pow((i - CurrentPoint_1.X), 2.0));
                 p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
             }
 
 
-            for (double i = CurrentPoint_1.X - r; i <= CurrentPoint_1.X; i += 0.001)
+            for (double i = CurrentPoint_1.X - r; i <= CurrentPoint_1.X; i += 0.01)
             {
                 double yN = CurrentPoint_1.Y - Math.Sqrt(r * r - Math.Pow((i - CurrentPoint_1.X), 2.0));
                 p.FillRectangle(new SolidBrush(CurrentColor), (float)i, (float)yN, currentPen.Width, currentPen.Width);
@@ -256,12 +349,13 @@ namespace WindowsFormsApplication2
             InitializeComponent();
             g = panelPaint.CreateGraphics();
             currentPen = new Pen(CurrentColor, float.Parse(tBoxThicknessLine.Text));
+            TimeDrawing.DotesPerSecond = uint.Parse(tBoxDotesPerSec.Text);
         }
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
             ifPressed = false;
-            ifPressed1 = false;
+            //ifPressed1 = false;
         }
 
         private void panel1_MouseMove(object sender, MouseEventArgs e)
@@ -288,13 +382,14 @@ namespace WindowsFormsApplication2
             if (isPouring) // mode of pouring
             {
                 // bit map of panel
-                Bitmap bmOfPanel = new Bitmap(this.panelPaint.Width, this.panelPaint.Height);
-                Graphics grBitMap = Graphics.FromImage(bmOfPanel);
+                Bitmap bmpOfPanel = new Bitmap(this.panelPaint.Width, this.panelPaint.Height);
+                Graphics grBitMap = Graphics.FromImage(bmpOfPanel);
                 Rectangle rect = panelPaint.RectangleToScreen(panelPaint.ClientRectangle);
                 grBitMap.CopyFromScreen(rect.Location, Point.Empty, panelPaint.ClientSize);
 
-                // get new bitmap with pouring
-                Bitmap newImageForPanel = PaintZone(bmOfPanel, e.Location.X, e.Location.Y, ColorPouring, CurrentColor);
+                // get new bitmap with pouring                
+                Bitmap newImageForPanel = floodFill(bmpOfPanel, e.Location.X, e.Location.Y, bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
+                    //PaintZone(bmOfPanel, e.Location.X, e.Location.Y, ColorPouring, CurrentColor);
                 panelPaint.BackgroundImage = newImageForPanel;  
               
                 return;
@@ -390,10 +485,11 @@ namespace WindowsFormsApplication2
             //MessageBox.Show("Вы выбрали инструмент - <Круг>. Для того что бы построить круг, вам нужно выбрать цвет(по желанию), поставить левую верхнюю границу круга на области для рисования, и нажать кнопку <Построить>.");
             //panel1.Refresh();
 
-            FormRadiusOfCircle formSizeSquare = new FormRadiusOfCircle(); // form for get size of square
-            formSizeSquare.ShowDialog();
+            FormRadiusOfCircle formRadiusCircle = new FormRadiusOfCircle(); // form for get size of square
+            formRadiusCircle.StartPosition = FormStartPosition.CenterParent;
+            formRadiusCircle.ShowDialog();
 
-            RadiusOfCircle = formSizeSquare.RadiusOfCircle;
+            RadiusOfCircle = formRadiusCircle.RadiusOfCircle;
 
             Point CurrentPoint_1 = new Point(0, 0);
             Point CurrentPoint_2 = new Point(0, 0);
@@ -449,6 +545,7 @@ namespace WindowsFormsApplication2
             resetCursorOfPanel();
 
             panelPaint.Refresh();
+            panelPaint.BackgroundImage = null;
             Point CurrentPoint_1 = new Point(0, 0);
             Point CurrentPoint_2 = new Point(0, 0);
             Point CurrentPoint_3 = new Point(0, 0);
@@ -463,6 +560,11 @@ namespace WindowsFormsApplication2
 
         }
 
+        private async void GetPointsForDraw()
+        {
+            
+        }
+
         private void butBuildFigure_Click(object sender, EventArgs e)
         {
             resetPouring();
@@ -471,29 +573,56 @@ namespace WindowsFormsApplication2
             if (line == true)
             {
 
-                drawesLines(CurrentPoint_1, CurrentPoint_2);
+                //drawesLines(CurrentPoint_1, CurrentPoint_2);
+                //BresenhamLine(CurrentPoint_1.X, CurrentPoint_1.Y, CurrentPoint_2.X, CurrentPoint_2.Y);
+
+                calcPointsAsync.CalcPolygon(new List<Point>() { CurrentPoint_1, CurrentPoint_2 });
+
+                timer.Start();
 
                 line = false;
             }
             if (thr == true)
             {
-                drawesLines(CurrentPoint_1, CurrentPoint_2);
-                drawesLines(CurrentPoint_2, CurrentPoint_3);
-                drawesLines(CurrentPoint_3, CurrentPoint_4);
+                calcPointsAsync.CalcPolygon(new List<Point>() { CurrentPoint_1, CurrentPoint_2, CurrentPoint_3, CurrentPoint_4 });
+                timer.Start();
+                //BresenhamLine(CurrentPoint_1.X, CurrentPoint_1.Y, CurrentPoint_2.X, CurrentPoint_2.Y);
+                //BresenhamLine(CurrentPoint_2.X, CurrentPoint_2.Y, CurrentPoint_3.X, CurrentPoint_3.Y);
+                //BresenhamLine(CurrentPoint_3.X, CurrentPoint_3.Y, CurrentPoint_4.X, CurrentPoint_4.Y);
+                ////drawesLines(CurrentPoint_1, CurrentPoint_2);
+                //drawesLines(CurrentPoint_2, CurrentPoint_3);
+                //drawesLines(CurrentPoint_3, CurrentPoint_4);
 
                 thr = false;
             }
             if (kr == true)
             {
-                drawesCircles(new Point(x, y), RadiusOfCircle);
-                kr = false;
+                BresenhamCircle(x, y, RadiusOfCircle);
+                //drawesCircles(new Point(x, y), RadiusOfCircle);
+                kr = false;               
             }
             if (kvad == true)
             {
-                drawesLines(new Point(x, y), new Point(x + SizeSideSquare, y));
-                drawesLinesY(new Point(x + SizeSideSquare, y), new Point(x + SizeSideSquare, y + SizeSideSquare));
-                drawesLines(new Point(x + SizeSideSquare, y + SizeSideSquare), new Point(x, y + SizeSideSquare));
-                drawesLinesY(new Point(x, y + SizeSideSquare), new Point(x, y));
+                calcPointsAsync.CalcPolygon(new List<Point>()
+                {
+                    new Point(x, y),
+                    new Point(x + SizeSideSquare, y),
+                    new Point(x + SizeSideSquare, y),
+                    new Point(x + SizeSideSquare, y + SizeSideSquare),
+                    new Point(x + SizeSideSquare, y + SizeSideSquare),
+                    new Point(x, y + SizeSideSquare),
+                    new Point(x, y + SizeSideSquare),
+                    new Point(x, y)
+                });
+                timer.Start();
+                //BresenhamLine(x, y, x + SizeSideSquare, y);
+                //BresenhamLine(x + SizeSideSquare, y, x + SizeSideSquare, y + SizeSideSquare);
+                //BresenhamLine(x + SizeSideSquare, y + SizeSideSquare, x, y + SizeSideSquare);
+                //BresenhamLine(x, y + SizeSideSquare,x, y);
+                //drawesLines(new Point(x, y), new Point(x + SizeSideSquare, y));
+                //drawesLinesY(new Point(x + SizeSideSquare, y), new Point(x + SizeSideSquare, y + SizeSideSquare));
+                //drawesLines(new Point(x + SizeSideSquare, y + SizeSideSquare), new Point(x, y + SizeSideSquare));
+                //drawesLinesY(new Point(x, y + SizeSideSquare), new Point(x, y));
                 kvad = false;
             }
         }
@@ -508,7 +637,7 @@ namespace WindowsFormsApplication2
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            bmpFromPanel = new Bitmap(panelPaint.Width, panelPaint.Height);
+            
         }
 
         private void выходToolStripMenuItem_Click(object sender, EventArgs e)
@@ -529,12 +658,21 @@ namespace WindowsFormsApplication2
 
         private void tBoxThicknessLine_TextChanged(object sender, EventArgs e)
         {
+            if (tBoxThicknessLine.Text == string.Empty) // wait input
+                return;
+
             try
             {
-                currentPen.Width = float.Parse(tBoxThicknessLine.Text);
+                float widthPen = float.Parse(tBoxThicknessLine.Text);
+                if (widthPen < 0)
+                    throw new Exception("Not valid size of line");
+
+                currentPen.Width = widthPen;
+                
             }
             catch (Exception ex)
             {
+                tBoxThicknessLine.Text = currentPen.Width.ToString();
                 MessageBox.Show("Not valid size of line");
             }
         }
@@ -564,6 +702,69 @@ namespace WindowsFormsApplication2
                 panelPaint.Cursor = Cursors.Arrow;
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // bit map of panel
+            Bitmap bmpOfPanel = new Bitmap(this.panelPaint.Width, this.panelPaint.Height);
+            Graphics grBitMap = Graphics.FromImage(bmpOfPanel);
+            Rectangle rect = panelPaint.RectangleToScreen(panelPaint.ClientRectangle);
+            grBitMap.CopyFromScreen(rect.Location, Point.Empty, panelPaint.ClientSize);
+
+            // dialog for save
+            SaveFileDialog sf = new SaveFileDialog();
+            sf.Filter = "Bitmap Image (.bmp)|*.bmp|Gif Image (.gif)|*.gif|JPEG Image (.jpeg)|*.jpeg|Png Image (.png)|*.png|Tiff Image (.tiff)|*.tiff|Wmf Image (.wmf)|*.wmf";
+            sf.ShowDialog();
+            var path = sf.FileName;           
+
+            // save image           
+            bmpOfPanel.Save(path);
+        }
+
+        private void panelPaint_Resize(object sender, EventArgs e)
+        {
+            g = panelPaint.CreateGraphics();
+        }
+
+        private void tBoxDotesPerSec_TextChanged(object sender, EventArgs e)
+        {
+            if (tBoxDotesPerSec.Text == string.Empty) // wait input
+                return;
+
+            try
+            {
+                uint dotesPerSec = uint.Parse(tBoxDotesPerSec.Text);
+
+                 MillisecOnDote = 1000 / (int)dotesPerSec;// millisec on dote
+                timer.Interval = MillisecOnDote;
+            }
+            catch (Exception ex)
+            {
+                tBoxDotesPerSec.Text = TimeDrawing.DotesPerSecond.ToString();
+                MessageBox.Show("Not valid size of line");
+            }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if(calculatedPoints == null || calculatedPoints.Count == 0) // empty or null accumulated points
+            {
+                if((calculatedPoints = calcPointsAsync.TryGetAccumulatedPoints()) == null && calcPointsAsync.EndCalcPoints) // end of calculated
+                {
+                    timer.Stop(); 
+                }
+                else if(calculatedPoints == null) // not calc already
+                {
+                    if (timer.Interval < 10) // some increase interval for calc
+                        timer.Interval += 40;
+                }
+            }
+            else // get and draw point
+            {
+                Point point = calculatedPoints.Dequeue();
+                g.FillRectangle(new SolidBrush(CurrentColor), point.X, point.Y, currentPen.Width, currentPen.Width);
+            }
+        }
+
         private void Form1_Shown(object sender, EventArgs e)
         {
             //Graphics k = Graphics.FromImage(bmp);
@@ -572,13 +773,7 @@ namespace WindowsFormsApplication2
 
         private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Bitmap bmp = new Bitmap(this.Width, this.Height);
-            SaveFileDialog sfd = new SaveFileDialog();
-            this.DrawToBitmap(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height));
-            if (sfd.ShowDialog() == DialogResult.OK)
-            {
-                bmp.Save(sfd.FileName);
-            }
+            butSaveImage.PerformClick();
         }
 
         private void разработчикToolStripMenuItem_Click(object sender, EventArgs e)
@@ -599,7 +794,8 @@ namespace WindowsFormsApplication2
             kvad = true;
             //MessageBox.Show("Вы выбрали инструмент - <Квадрат>. Для того что бы построить квадрат, вам нужно выбрать цвет(по желанию), поставить одну точку, которая будет определять левый верхний угол квадрата на области для рисования и выбрать длину стороны квадрата, и нажать кнопку <Построить>.");
 
-            FormSizeOfSquare formSizeSquare = new FormSizeOfSquare(); // form for get size of square
+            FormSizeOfSquare formSizeSquare = new FormSizeOfSquare(); // form for get size of square            
+            formSizeSquare.StartPosition = FormStartPosition.CenterParent;
             formSizeSquare.ShowDialog();
 
             SizeSideSquare = formSizeSquare.SizeOfSideSquare;

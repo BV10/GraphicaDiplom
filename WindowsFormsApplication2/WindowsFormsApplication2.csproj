@@ -62,8 +62,12 @@
     <Compile Include="FormSizeOfSquare.Designer.cs">
       <DependentUpon>FormSizeOfSquare.cs</DependentUpon>
     </Compile>
+    <Compile Include="MyFigures\CalcPointsFigureAsync.cs" />
+    <Compile Include="MyFigures\IFigure.cs" />
+    <Compile Include="MyFigures\Triangle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TimeDrawing.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
