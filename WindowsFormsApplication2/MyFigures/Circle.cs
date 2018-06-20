@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace WindowsFormsApplication2.MyFigures
 {
-    interface IDrawFigure
+    struct Circle
     {
-        bool EndDraw();
-        void DrawFirstPoint(Graphics gr, Pen pen, SolidBrush brush);
-        void DrawNextPoint(Graphics gr, Pen pen, SolidBrush brush);
+        public Point center;
+        public int radius;
     }
 }

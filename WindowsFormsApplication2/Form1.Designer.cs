@@ -146,14 +146,14 @@
             // сохранитьToolStripMenuItem
             // 
             this.сохранитьToolStripMenuItem.Name = "сохранитьToolStripMenuItem";
-            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.сохранитьToolStripMenuItem.Text = "Сохранить";
             this.сохранитьToolStripMenuItem.Click += new System.EventHandler(this.сохранитьToolStripMenuItem_Click);
             // 
             // выходToolStripMenuItem
             // 
             this.выходToolStripMenuItem.Name = "выходToolStripMenuItem";
-            this.выходToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.выходToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.выходToolStripMenuItem.Text = "Выход";
             this.выходToolStripMenuItem.Click += new System.EventHandler(this.выходToolStripMenuItem_Click);
             // 
@@ -240,7 +240,7 @@
             this.butSquare.UseVisualStyleBackColor = true;
             this.butSquare.Click += new System.EventHandler(this.butSquare_Click);
             // 
-            // timer1
+            // timer
             // 
             this.timer.Tick += new System.EventHandler(this.timer1_Tick);
             // 
@@ -262,7 +262,7 @@
             this.tBoxDotesPerSec.Name = "tBoxDotesPerSec";
             this.tBoxDotesPerSec.Size = new System.Drawing.Size(45, 20);
             this.tBoxDotesPerSec.TabIndex = 22;
-            this.tBoxDotesPerSec.Text = "5";
+            this.tBoxDotesPerSec.Text = "500";
             this.tBoxDotesPerSec.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.tBoxDotesPerSec.TextChanged += new System.EventHandler(this.tBoxDotesPerSec_TextChanged);
             // 
