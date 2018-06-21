@@ -33,32 +33,35 @@ namespace WindowsFormsApplication2
         public Color ColorPouring { get; private set; }
 
         Color CurrentColor = Color.Black;
-        bool ifPressed = false; 
+        bool ifPressed = false;
         bool pen = false;
         Point CurrentPoint;
         Point CurrentPoint_1;
         Point CurrentPoint_2;
         Point CurrentPoint_3;
         Point CurrentPoint_4;
-        bool line = false;
-        bool thr = false;
-        bool kr = false;
-        bool kvad = false;
-        Point PrevPoint;    
+        //bool line = false;
+        //bool thr = false;
+        //bool kr = false;
+        //bool kvad = false;
+        Figure currentFigure = Figure.None;
+        Point PrevPoint;
         int counter = 0;
         int x, y, l, m;
-        Graphics g;       
+        Graphics g;
         Pen currentPen;
 
         Queue<Point> calculatedPoints = new Queue<Point>();
         CalcPointsFigureAsync calcPointsAsync = new CalcPointsFigureAsync();
         Task taskCalcPoints;
 
-        private uint DotesPerSecond { get; set; }
-        public uint DotesPerSec { get; private set; }
-        public int MillisecOnDote { get; private set; }
+        private const int Max_Speed_Draw_MillisecOnDote = 1;
+        private int MillisecOnDote { get; set; }
 
         bool isPouring = false;
+
+        private Color colorBeforePouring; // for fast pouring after slowly fill
+        private Point lastFillPoint; // for fast pouring after slowly fill
 
         private Bitmap PaintZone(Bitmap sourceImage, int x, int y, Color color, Color borderColor)
         {
@@ -116,7 +119,7 @@ namespace WindowsFormsApplication2
 
         Bitmap floodFill(Bitmap sourceImage, int x, int y, Color oldcolor, Color newcolor)
         {
-            Bitmap bmp = (Bitmap)sourceImage.Clone();            
+            Bitmap bmp = (Bitmap)sourceImage.Clone();
 
             Stack<Point> stackPixels = new Stack<Point>();
 
@@ -141,7 +144,7 @@ namespace WindowsFormsApplication2
                 if (currentPixel.X - 1 > 0 && currentPixel.X - 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
                 {
                     //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
-                    if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() != newcolor.ToArgb())
                     {
                         stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
                     }
@@ -149,7 +152,7 @@ namespace WindowsFormsApplication2
 
                 if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
                 {
-                    if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() != newcolor.ToArgb())
                     {
                         stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
                     }
@@ -157,7 +160,7 @@ namespace WindowsFormsApplication2
 
                 if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
                 {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb())
+                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() != newcolor.ToArgb())
                     {
                         stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
                     }
@@ -165,7 +168,7 @@ namespace WindowsFormsApplication2
 
                 if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
                 {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb())
+                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() != newcolor.ToArgb())
                     {
                         stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
                     }
@@ -191,7 +194,7 @@ namespace WindowsFormsApplication2
                 p.FillRectangle(new SolidBrush(CurrentColor), -x + x0, -y + y0, currentPen.Width, currentPen.Width);
                 p.FillRectangle(new SolidBrush(CurrentColor), -y + x0, -x + y0, currentPen.Width, currentPen.Width);
                 p.FillRectangle(new SolidBrush(CurrentColor), x + x0, -y + y0, currentPen.Width, currentPen.Width);
-                p.FillRectangle(new SolidBrush(CurrentColor), y + x0, -x + y0, currentPen.Width, currentPen.Width);                
+                p.FillRectangle(new SolidBrush(CurrentColor), y + x0, -x + y0, currentPen.Width, currentPen.Width);
                 y++;
                 if (radiusError < 0)
                 {
@@ -275,7 +278,7 @@ namespace WindowsFormsApplication2
                     //TimeDrawing.EndDraw(); // time adjustment(end draw line)
                 }
 
-                
+
             }
 
 
@@ -290,7 +293,7 @@ namespace WindowsFormsApplication2
             {
                 for (double i = CurrentPoint_1.Y; i >= CurrentPoint_2.Y; i -= 0.01)
                 {
-                   // TimeDrawing.BegDraw(); // time adjustment(beg draw line)
+                    // TimeDrawing.BegDraw(); // time adjustment(beg draw line)
 
                     double xN = (CurrentPoint_2.X - CurrentPoint_1.X) * (i - CurrentPoint_1.Y) / (CurrentPoint_2.Y - CurrentPoint_1.Y) + CurrentPoint_1.X;
                     p.FillRectangle(new SolidBrush(CurrentColor), (float)xN, (float)i, currentPen.Width, currentPen.Width);
@@ -351,8 +354,11 @@ namespace WindowsFormsApplication2
             InitializeComponent();
             g = panelPaint.CreateGraphics();
             currentPen = new Pen(CurrentColor, float.Parse(tBoxThicknessLine.Text));
-            MillisecOnDote = 1000 / (int)(uint.Parse(tBoxDotesPerSec.Text));
+            // start value speed drawing
+            MillisecOnDote = Max_Speed_Draw_MillisecOnDote;
             timer.Interval = MillisecOnDote;
+            // MillisecOnDote = 1000 / (int)(uint.Parse(tBoxDotesPerSec.Text));
+            // timer.Interval = MillisecOnDote;
         }
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
@@ -376,35 +382,50 @@ namespace WindowsFormsApplication2
         {
             ifPressed = true;
             CurrentPoint = e.Location;
-        } 
-       
-        
+        }
+
+
 
         private void panel1_MouseClick(object sender, MouseEventArgs e)
         {
             if (isPouring) // mode of pouring
             {
+
+
                 // bit map of panel
                 Bitmap bmpOfPanel = new Bitmap(this.panelPaint.Width, this.panelPaint.Height);
                 Graphics grBitMap = Graphics.FromImage(bmpOfPanel);
                 Rectangle rect = panelPaint.RectangleToScreen(panelPaint.ClientRectangle);
                 grBitMap.CopyFromScreen(rect.Location, Point.Empty, panelPaint.ClientSize);
 
-                //// get new bitmap with pouring                
-                //Bitmap newImageForPanel = floodFill(bmpOfPanel, e.Location.X, e.Location.Y, bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
-                //    //PaintZone(bmOfPanel, e.Location.X, e.Location.Y, ColorPouring, CurrentColor);
-                //panelPaint.BackgroundImage = newImageForPanel;  
+                // get new bitmap with pouring                
 
-                taskCalcPoints = calcPointsAsync.PouringArea(bmpOfPanel, e.Location.X, e.Location.Y, bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
-                timer.Start();
-              
+
+                if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // fast drawing
+                {
+                    colorBeforePouring = bmpOfPanel.GetPixel(e.Location.X, e.Location.Y);
+                    Bitmap newImageForPanel = floodFill(bmpOfPanel, e.Location.X, e.Location.Y, bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
+                    panelPaint.BackgroundImage = newImageForPanel;
+
+
+                    timer.Stop();
+                }
+                else
+                {
+                    colorBeforePouring = bmpOfPanel.GetPixel(e.Location.X, e.Location.Y);
+                    taskCalcPoints = calcPointsAsync.PouringArea(bmpOfPanel, e.Location.X, e.Location.Y, bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
+                    timer.Start();
+                }
+
+
+
                 return;
             }
 
             if (pen == false)
             {
 
-                if ((line == true) || (kr == true) || (thr == true) || (kvad == true))
+                if (currentFigure != Figure.None)
                 {
                     l = e.X;
                     m = e.Y;
@@ -464,7 +485,7 @@ namespace WindowsFormsApplication2
             resetCursorOfPanel();
             resetPouring();
 
-            line = true;
+            currentFigure = Figure.Line;
             //MessageBox.Show("Вы выбрали инструмент - <Линия>. Для того что бы построить линию, вам нужно выбрать цвет(по желанию), поставить две точки на области для рисования, и нажать кнопку <Построить>.");
             //panel1.Refresh();
             Point CurrentPoint_1 = new Point(0, 0);
@@ -487,7 +508,7 @@ namespace WindowsFormsApplication2
             resetCursorOfPanel();
             resetPouring();
 
-            kr = true;
+            currentFigure = Figure.Circle;
             //MessageBox.Show("Вы выбрали инструмент - <Круг>. Для того что бы построить круг, вам нужно выбрать цвет(по желанию), поставить левую верхнюю границу круга на области для рисования, и нажать кнопку <Построить>.");
             //panel1.Refresh();
 
@@ -518,7 +539,7 @@ namespace WindowsFormsApplication2
             resetPouring();
 
             //MessageBox.Show("Вы выбрали инструмент - <Треугольник>. Для того что бы построить треугольник, вам нужно выбрать цвет(по желанию), поставить три точки на области для рисования, и нажать кнопку <Построить>.");
-            thr = true;
+            currentFigure = Figure.Triangle;
             // panel1.Refresh();
             Point CurrentPoint_1 = new Point(0, 0);
             Point CurrentPoint_2 = new Point(0, 0);
@@ -550,7 +571,7 @@ namespace WindowsFormsApplication2
             resetPouring();
             resetCursorOfPanel();
 
-            if(taskCalcPoints != null) // stop draw figure and reset all fields
+            if (taskCalcPoints != null) // stop draw figure and reset all fields
             {
                 calculatedPoints = new Queue<Point>();
                 calcPointsAsync.CancellationTokenSource.Cancel();
@@ -575,72 +596,98 @@ namespace WindowsFormsApplication2
 
         private async void GetPointsForDraw()
         {
-            
+
         }
 
         private void butBuildFigure_Click(object sender, EventArgs e)
         {
             resetPouring();
 
-
-            if (line == true)
+            switch (currentFigure)
             {
 
-                //drawesLines(CurrentPoint_1, CurrentPoint_2);
-                //BresenhamLine(CurrentPoint_1.X, CurrentPoint_1.Y, CurrentPoint_2.X, CurrentPoint_2.Y);
+                case Figure.Line:
+                    {
+                        if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // fast drawing
+                        {
+                            BresenhamLine(CurrentPoint_1.X, CurrentPoint_1.Y, CurrentPoint_2.X, CurrentPoint_2.Y);
+                            currentFigure = Figure.None; // end of paint
+                            timer.Stop();
+                        }
+                        else
+                        {
+                            taskCalcPoints = calcPointsAsync.CalcPolygon(new List<Point>() { CurrentPoint_1, CurrentPoint_2 });
+                            timer.Start();
+                        }
+                    }
+                    break;
+                case Figure.Triangle:
+                    {
+                        if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // fast drawing
+                        {
+                            BresenhamLine(CurrentPoint_1.X, CurrentPoint_1.Y, CurrentPoint_2.X, CurrentPoint_2.Y);
+                            BresenhamLine(CurrentPoint_2.X, CurrentPoint_2.Y, CurrentPoint_3.X, CurrentPoint_3.Y);
+                            BresenhamLine(CurrentPoint_3.X, CurrentPoint_3.Y, CurrentPoint_4.X, CurrentPoint_4.Y);
 
-                taskCalcPoints = calcPointsAsync.CalcPolygon(new List<Point>() { CurrentPoint_1, CurrentPoint_2 });
-                timer.Start();
+                            currentFigure = Figure.None; // end of paint
 
-                line = false;
+                            timer.Stop();
+                        }
+                        else
+                        {
+                            taskCalcPoints = calcPointsAsync.CalcPolygon(new List<Point>() { CurrentPoint_1, CurrentPoint_2, CurrentPoint_3, CurrentPoint_4 });
+                            timer.Start();
+                        }
+                    }
+                    break;
+                case Figure.Square:
+                    {
+                        if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // fast drawing
+                        {
+                            BresenhamLine(x, y, x + SizeSideSquare, y);
+                            BresenhamLine(x + SizeSideSquare, y, x + SizeSideSquare, y + SizeSideSquare);
+                            BresenhamLine(x + SizeSideSquare, y + SizeSideSquare, x, y + SizeSideSquare);
+                            BresenhamLine(x, y + SizeSideSquare, x, y);
+
+                            currentFigure = Figure.None; // end of paint
+
+                            timer.Stop();
+                        }
+                        else
+                        {
+                            taskCalcPoints = calcPointsAsync.CalcPolygon(new List<Point>()
+                            {
+                                 new Point(x, y),
+                                 new Point(x + SizeSideSquare, y),
+                                 new Point(x + SizeSideSquare, y),
+                                 new Point(x + SizeSideSquare, y + SizeSideSquare),
+                                 new Point(x + SizeSideSquare, y + SizeSideSquare),
+                                 new Point(x, y + SizeSideSquare),
+                                 new Point(x, y + SizeSideSquare),
+                                 new Point(x, y)
+                            });
+                            timer.Start();
+                        }
+                    }
+                    break;
+                case Figure.Circle:
+                    {
+                        if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // fast drawing
+                        {
+                            BresenhamCircle(x, y, RadiusOfCircle);
+                            currentFigure = Figure.None; // end of paint
+
+                            timer.Stop();
+                        }
+                        else
+                        {
+                            taskCalcPoints = calcPointsAsync.CalcCircle(new Circle() { center = new Point(x, y), radius = RadiusOfCircle });
+                            timer.Start();                            
+                        }
+                    }
+                    break;
             }
-            if (thr == true)
-            {
-                taskCalcPoints = calcPointsAsync.CalcPolygon(new List<Point>() { CurrentPoint_1, CurrentPoint_2, CurrentPoint_3, CurrentPoint_4 });
-                timer.Start();
-                //BresenhamLine(CurrentPoint_1.X, CurrentPoint_1.Y, CurrentPoint_2.X, CurrentPoint_2.Y);
-                //BresenhamLine(CurrentPoint_2.X, CurrentPoint_2.Y, CurrentPoint_3.X, CurrentPoint_3.Y);
-                //BresenhamLine(CurrentPoint_3.X, CurrentPoint_3.Y, CurrentPoint_4.X, CurrentPoint_4.Y);
-                ////drawesLines(CurrentPoint_1, CurrentPoint_2);
-                //drawesLines(CurrentPoint_2, CurrentPoint_3);
-                //drawesLines(CurrentPoint_3, CurrentPoint_4);
-
-                thr = false;
-            }
-            if (kr == true)
-            {
-                taskCalcPoints = calcPointsAsync.CalcCircle(new Circle() { center = new Point(x, y), radius = RadiusOfCircle});
-                timer.Start();
-
-
-                //drawesCircles(new Point(x, y), RadiusOfCircle);
-                //BresenhamCircle(x, y, RadiusOfCircle);
-                //kr = false;               
-            }
-            if (kvad == true)
-            {
-                taskCalcPoints = calcPointsAsync.CalcPolygon(new List<Point>()
-                {
-                    new Point(x, y),
-                    new Point(x + SizeSideSquare, y),
-                    new Point(x + SizeSideSquare, y),
-                    new Point(x + SizeSideSquare, y + SizeSideSquare),
-                    new Point(x + SizeSideSquare, y + SizeSideSquare),
-                    new Point(x, y + SizeSideSquare),
-                    new Point(x, y + SizeSideSquare),
-                    new Point(x, y)
-                });
-                timer.Start();
-                //BresenhamLine(x, y, x + SizeSideSquare, y);
-                //BresenhamLine(x + SizeSideSquare, y, x + SizeSideSquare, y + SizeSideSquare);
-                //BresenhamLine(x + SizeSideSquare, y + SizeSideSquare, x, y + SizeSideSquare);
-                //BresenhamLine(x, y + SizeSideSquare,x, y);
-                //drawesLines(new Point(x, y), new Point(x + SizeSideSquare, y));
-                //drawesLinesY(new Point(x + SizeSideSquare, y), new Point(x + SizeSideSquare, y + SizeSideSquare));
-                //drawesLines(new Point(x + SizeSideSquare, y + SizeSideSquare), new Point(x, y + SizeSideSquare));
-                //drawesLinesY(new Point(x, y + SizeSideSquare), new Point(x, y));
-                kvad = false;
-            }
+            
         }
 
         private void butPencil_Click(object sender, EventArgs e)
@@ -653,7 +700,7 @@ namespace WindowsFormsApplication2
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+
         }
 
         private void выходToolStripMenuItem_Click(object sender, EventArgs e)
@@ -684,7 +731,7 @@ namespace WindowsFormsApplication2
                     throw new Exception("Not valid size of line");
 
                 currentPen.Width = widthPen;
-                
+
             }
             catch (Exception ex)
             {
@@ -730,7 +777,7 @@ namespace WindowsFormsApplication2
             SaveFileDialog sf = new SaveFileDialog();
             sf.Filter = "Bitmap Image (.bmp)|*.bmp|Gif Image (.gif)|*.gif|JPEG Image (.jpeg)|*.jpeg|Png Image (.png)|*.png|Tiff Image (.tiff)|*.tiff|Wmf Image (.wmf)|*.wmf";
             sf.ShowDialog();
-            var path = sf.FileName;           
+            var path = sf.FileName;
 
             // save image           
             bmpOfPanel.Save(path);
@@ -741,57 +788,87 @@ namespace WindowsFormsApplication2
             g = panelPaint.CreateGraphics();
         }
 
-        private void tBoxDotesPerSec_TextChanged(object sender, EventArgs e)
-        {
-            if (tBoxDotesPerSec.Text == string.Empty) // wait input
-                return;
+        //private void tBoxDotesPerSec_TextChanged(object sender, EventArgs e)
+        //{
+        //    if (tBoxDotesPerSec.Text == string.Empty) // wait input
+        //        return;
 
-            try
-            {
-                DotesPerSec = uint.Parse(tBoxDotesPerSec.Text);
+        //    try
+        //    {
+        //        DotesPerSec = uint.Parse(tBoxDotesPerSec.Text);
 
-                MillisecOnDote = 1000 / (int)DotesPerSec;// millisec on dote
-                if (MillisecOnDote < 1)
-                    throw new Exception("Notvalid value of dotes per sec");
-                timer.Interval = MillisecOnDote;
-            }
-            catch (Exception ex)
-            {
-                tBoxDotesPerSec.Text = DotesPerSecond.ToString();
-                MessageBox.Show("Not valid value of dotes per sec");
-            }
-        }
+        //        MillisecOnDote = 1000 / (int)DotesPerSec;// millisec on dote
+        //        if (MillisecOnDote < 1)
+        //            throw new Exception("Notvalid value of dotes per sec");
+        //        timer.Interval = MillisecOnDote;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        tBoxDotesPerSec.Text = DotesPerSecond.ToString();
+        //        MessageBox.Show("Not valid value of dotes per sec");
+        //    }
+        //}
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if(calculatedPoints == null || calculatedPoints.Count == 0) // empty or null accumulated points
+            if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // max speed drawing 
             {
-                if((calculatedPoints = calcPointsAsync.TryGetAccumulatedPoints()) == null && calcPointsAsync.EndCalcPoints) // end of calculated
+                if (taskCalcPoints != null) // stop calc draw figure
                 {
-                    timer.Stop();
-                    if(kr == true) // kostil bad draw circle
-                    {
-                        BresenhamCircle(x, y, RadiusOfCircle);
-                        kr = false;
-                    }
+                    calculatedPoints = new Queue<Point>();
+                    calcPointsAsync.CancellationTokenSource.Cancel();                    
                 }
-                else if(calculatedPoints == null) // not calc already
+
+                if (isPouring) // perform fast pouring
                 {
-                    //if (timer.Interval < 10) // some increase interval for calc
-                       //timer.Interval += 40;
+                    // bit map of panel
+                    Bitmap bmpOfPanel = new Bitmap(this.panelPaint.Width, this.panelPaint.Height);
+                    Graphics grBitMap = Graphics.FromImage(bmpOfPanel);
+                    Rectangle rect = panelPaint.RectangleToScreen(panelPaint.ClientRectangle);
+                    grBitMap.CopyFromScreen(rect.Location, Point.Empty, panelPaint.ClientSize);
+
+                    bmpOfPanel.SetPixel(lastFillPoint.X, lastFillPoint.Y, colorBeforePouring);
+
+                    Bitmap newImageForPanel = floodFill(bmpOfPanel, lastFillPoint.X, lastFillPoint.Y, colorBeforePouring, ColorPouring);
+                    
+                    panelPaint.BackgroundImage = newImageForPanel;
+
+                    timer.Stop();// end drawing stop
+                }
+                else // fast drawing
+                {
+                    butBuildChoseFigure.PerformClick(); // click for drawing
                 }
             }
-            else // get and draw point
-            {                
-                Point point = calculatedPoints.Dequeue();
-                if(isPouring) // pouring by pixel
+            else
+            {
+                if (calculatedPoints == null || calculatedPoints.Count == 0) // empty or null accumulated points
                 {
-                    g.FillRectangle(new SolidBrush(ColorPouring), point.X, point.Y, 1, 1);
+                    if ((calculatedPoints = calcPointsAsync.TryGetAccumulatedPoints()) == null && calcPointsAsync.EndCalcPoints) // end of calculated
+                    {
+                        timer.Stop();
+                        currentFigure = Figure.None; // end drawing
+                    }
+                    else if (calculatedPoints == null) // not calc already
+                    {
+                        //if (timer.Interval < 10) // some increase interval for calc
+                        //timer.Interval += 40;
+                    }
                 }
-                else // draw pen
+                else // get and draw point
                 {
-                    g.FillRectangle(new SolidBrush(CurrentColor), point.X, point.Y, currentPen.Width, currentPen.Width);
-                }               
+                    Point point = calculatedPoints.Dequeue();
+                   
+                    if (isPouring) // pouring by pixel
+                    {
+                        lastFillPoint = point;
+                        g.FillRectangle(new SolidBrush(ColorPouring), point.X, point.Y, 1, 1);
+                    }
+                    else // draw pen
+                    {
+                        g.FillRectangle(new SolidBrush(CurrentColor), point.X, point.Y, currentPen.Width, currentPen.Width);
+                    }
+                }
             }
         }
 
@@ -804,6 +881,26 @@ namespace WindowsFormsApplication2
         private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             butSaveImage.PerformClick();
+        }
+
+        private void hScrollBar1_Scroll(object sender, ScrollEventArgs e)
+        {
+            if (hScrollDotesPerSec.Value > 200) // max speed drawing
+            {
+                // change label
+                labelDotesPerSec.Text = "Maximum";
+                // change timer
+                MillisecOnDote = Max_Speed_Draw_MillisecOnDote;
+                timer.Interval = MillisecOnDote;
+            }
+            else
+            {
+                // change timer
+                timer.Interval = 1000 / hScrollDotesPerSec.Value;
+                MillisecOnDote = timer.Interval;
+                // change label
+                labelDotesPerSec.Text = hScrollDotesPerSec.Value.ToString();
+            }
         }
 
         private void разработчикToolStripMenuItem_Click(object sender, EventArgs e)
@@ -821,7 +918,7 @@ namespace WindowsFormsApplication2
             resetCursorOfPanel();
             resetPouring();
 
-            kvad = true;
+            currentFigure = Figure.Square;
             //MessageBox.Show("Вы выбрали инструмент - <Квадрат>. Для того что бы построить квадрат, вам нужно выбрать цвет(по желанию), поставить одну точку, которая будет определять левый верхний угол квадрата на области для рисования и выбрать длину стороны квадрата, и нажать кнопку <Построить>.");
 
             FormSizeOfSquare formSizeSquare = new FormSizeOfSquare(); // form for get size of square            

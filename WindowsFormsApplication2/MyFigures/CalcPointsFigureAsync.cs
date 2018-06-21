@@ -10,7 +10,7 @@ namespace WindowsFormsApplication2.MyFigures
 {
     class CalcPointsFigureAsync
     {
-        private const int Min_Accumulating_Points = 20;
+        private const int Min_Accumulating_Points = 10;
         private readonly object block = new object(); // blocker
 
         public CancellationTokenSource CancellationTokenSource { get; set; }
