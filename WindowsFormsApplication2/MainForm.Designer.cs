@@ -1,6 +1,9 @@
-﻿namespace WindowsFormsApplication2
+﻿using System;
+using System.Windows.Forms;
+
+namespace WindowsFormsApplication2
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// Требуется переменная конструктора.
@@ -29,7 +32,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.panelPaint = new System.Windows.Forms.Panel();
             this.butLine = new System.Windows.Forms.Button();
             this.butCircle = new System.Windows.Forms.Button();
             this.butTriangle = new System.Windows.Forms.Button();
@@ -55,32 +57,18 @@
             this.butSaveImage = new System.Windows.Forms.Button();
             this.hScrollDotesPerSec = new System.Windows.Forms.HScrollBar();
             this.labelDotesPerSec = new System.Windows.Forms.Label();
+            this.pictureBoxImage = new System.Windows.Forms.PictureBox();
+            this.panelPaint = new System.Windows.Forms.Panel();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxImage)).BeginInit();
+            this.panelPaint.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // panelPaint
-            // 
-            this.panelPaint.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelPaint.BackColor = System.Drawing.SystemColors.Control;
-            this.panelPaint.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelPaint.Location = new System.Drawing.Point(176, 27);
-            this.panelPaint.Name = "panelPaint";
-            this.panelPaint.Size = new System.Drawing.Size(945, 490);
-            this.panelPaint.TabIndex = 0;
-            this.panelPaint.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
-            this.panelPaint.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDoubleClick);
-            this.panelPaint.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
-            this.panelPaint.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
-            this.panelPaint.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseUp);
-            this.panelPaint.Resize += new System.EventHandler(this.panelPaint_Resize);
             // 
             // butLine
             // 
             this.butLine.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butLine.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butLine.Location = new System.Drawing.Point(10, 54);
+            this.butLine.Location = new System.Drawing.Point(10, 48);
             this.butLine.Name = "butLine";
             this.butLine.Size = new System.Drawing.Size(150, 26);
             this.butLine.TabIndex = 1;
@@ -92,7 +80,7 @@
             // 
             this.butCircle.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butCircle.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butCircle.Location = new System.Drawing.Point(11, 117);
+            this.butCircle.Location = new System.Drawing.Point(11, 111);
             this.butCircle.Name = "butCircle";
             this.butCircle.Size = new System.Drawing.Size(150, 25);
             this.butCircle.TabIndex = 2;
@@ -104,7 +92,7 @@
             // 
             this.butTriangle.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butTriangle.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butTriangle.Location = new System.Drawing.Point(11, 86);
+            this.butTriangle.Location = new System.Drawing.Point(11, 80);
             this.butTriangle.Name = "butTriangle";
             this.butTriangle.Size = new System.Drawing.Size(150, 25);
             this.butTriangle.TabIndex = 3;
@@ -117,7 +105,7 @@
             this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Arial Narrow", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(12, 24);
+            this.label1.Location = new System.Drawing.Point(12, 18);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(154, 23);
             this.label1.TabIndex = 4;
@@ -131,7 +119,7 @@
             this.контактыToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1132, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1277, 24);
             this.menuStrip1.TabIndex = 14;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -185,7 +173,7 @@
             // 
             this.butColor.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butColor.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butColor.Location = new System.Drawing.Point(11, 426);
+            this.butColor.Location = new System.Drawing.Point(11, 420);
             this.butColor.Name = "butColor";
             this.butColor.Size = new System.Drawing.Size(156, 23);
             this.butColor.TabIndex = 15;
@@ -197,7 +185,7 @@
             // 
             this.butClear.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butClear.Location = new System.Drawing.Point(11, 481);
+            this.butClear.Location = new System.Drawing.Point(11, 475);
             this.butClear.Name = "butClear";
             this.butClear.Size = new System.Drawing.Size(156, 23);
             this.butClear.TabIndex = 16;
@@ -209,7 +197,7 @@
             // 
             this.butBuildChoseFigure.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butBuildChoseFigure.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butBuildChoseFigure.Location = new System.Drawing.Point(11, 210);
+            this.butBuildChoseFigure.Location = new System.Drawing.Point(11, 204);
             this.butBuildChoseFigure.Name = "butBuildChoseFigure";
             this.butBuildChoseFigure.Size = new System.Drawing.Size(150, 40);
             this.butBuildChoseFigure.TabIndex = 18;
@@ -221,7 +209,7 @@
             // 
             this.butPencil.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butPencil.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butPencil.Location = new System.Drawing.Point(11, 179);
+            this.butPencil.Location = new System.Drawing.Point(11, 173);
             this.butPencil.Name = "butPencil";
             this.butPencil.Size = new System.Drawing.Size(150, 25);
             this.butPencil.TabIndex = 19;
@@ -233,7 +221,7 @@
             // 
             this.butSquare.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butSquare.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butSquare.Location = new System.Drawing.Point(10, 148);
+            this.butSquare.Location = new System.Drawing.Point(10, 142);
             this.butSquare.Name = "butSquare";
             this.butSquare.Size = new System.Drawing.Size(150, 25);
             this.butSquare.TabIndex = 20;
@@ -250,7 +238,7 @@
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label2.Location = new System.Drawing.Point(9, 265);
+            this.label2.Location = new System.Drawing.Point(9, 259);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(152, 16);
             this.label2.TabIndex = 21;
@@ -260,7 +248,7 @@
             // 
             this.butPouring.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butPouring.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butPouring.Location = new System.Drawing.Point(11, 398);
+            this.butPouring.Location = new System.Drawing.Point(11, 392);
             this.butPouring.Name = "butPouring";
             this.butPouring.Size = new System.Drawing.Size(152, 23);
             this.butPouring.TabIndex = 23;
@@ -273,7 +261,7 @@
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label3.Location = new System.Drawing.Point(24, 341);
+            this.label3.Location = new System.Drawing.Point(24, 335);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(109, 16);
             this.label3.TabIndex = 24;
@@ -282,7 +270,7 @@
             // tBoxThicknessLine
             // 
             this.tBoxThicknessLine.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.tBoxThicknessLine.Location = new System.Drawing.Point(52, 360);
+            this.tBoxThicknessLine.Location = new System.Drawing.Point(52, 354);
             this.tBoxThicknessLine.Name = "tBoxThicknessLine";
             this.tBoxThicknessLine.Size = new System.Drawing.Size(45, 20);
             this.tBoxThicknessLine.TabIndex = 25;
@@ -294,7 +282,7 @@
             // 
             this.butSaveImage.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.butSaveImage.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.butSaveImage.Location = new System.Drawing.Point(10, 453);
+            this.butSaveImage.Location = new System.Drawing.Point(10, 447);
             this.butSaveImage.Name = "butSaveImage";
             this.butSaveImage.Size = new System.Drawing.Size(156, 23);
             this.butSaveImage.TabIndex = 26;
@@ -304,7 +292,8 @@
             // 
             // hScrollDotesPerSec
             // 
-            this.hScrollDotesPerSec.Location = new System.Drawing.Point(35, 311);
+            this.hScrollDotesPerSec.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.hScrollDotesPerSec.Location = new System.Drawing.Point(35, 305);
             this.hScrollDotesPerSec.Maximum = 210;
             this.hScrollDotesPerSec.Minimum = 1;
             this.hScrollDotesPerSec.Name = "hScrollDotesPerSec";
@@ -315,20 +304,51 @@
             // 
             // labelDotesPerSec
             // 
+            this.labelDotesPerSec.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.labelDotesPerSec.AutoSize = true;
             this.labelDotesPerSec.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.labelDotesPerSec.Location = new System.Drawing.Point(44, 289);
+            this.labelDotesPerSec.Location = new System.Drawing.Point(44, 283);
             this.labelDotesPerSec.Name = "labelDotesPerSec";
             this.labelDotesPerSec.Size = new System.Drawing.Size(65, 16);
             this.labelDotesPerSec.TabIndex = 28;
             this.labelDotesPerSec.Text = "Maximum";
             // 
-            // Form1
+            // pictureBoxImage
+            // 
+            this.pictureBoxImage.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pictureBoxImage.Location = new System.Drawing.Point(0, 0);
+            this.pictureBoxImage.Name = "pictureBoxImage";
+            this.pictureBoxImage.Size = new System.Drawing.Size(944, 477);
+            this.pictureBoxImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBoxImage.TabIndex = 0;
+            this.pictureBoxImage.TabStop = false;
+            this.pictureBoxImage.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBoxImage_MouseClick);
+            this.pictureBoxImage.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxImage_MouseDown);
+            this.pictureBoxImage.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxImage_MouseMove);
+            this.pictureBoxImage.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxImage_MouseUp);
+            this.pictureBoxImage.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.pictureBoxImage_MouseWheel);
+            this.pictureBoxImage.Resize += new System.EventHandler(this.pictureBoxImage_Resize_1);
+            // 
+            // panelPaint
+            // 
+            this.panelPaint.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelPaint.AutoScroll = true;
+            this.panelPaint.BackColor = System.Drawing.SystemColors.Control;
+            this.panelPaint.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelPaint.Controls.Add(this.pictureBoxImage);
+            this.panelPaint.Location = new System.Drawing.Point(174, 25);
+            this.panelPaint.Name = "panelPaint";
+            this.panelPaint.Size = new System.Drawing.Size(945, 479);
+            this.panelPaint.TabIndex = 0;
+            // 
+            // MainForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.AutoSize = true;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1132, 526);
+            this.ClientSize = new System.Drawing.Size(1277, 515);
             this.Controls.Add(this.labelDotesPerSec);
             this.Controls.Add(this.hScrollDotesPerSec);
             this.Controls.Add(this.butSaveImage);
@@ -349,21 +369,25 @@
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStrip1;
-            this.Name = "Form1";
+            this.MaximizeBox = false;
+            this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Графический редактор";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxImage)).EndInit();
+            this.panelPaint.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
-        #endregion
 
-        private System.Windows.Forms.Panel panelPaint;
+
+
+        #endregion
         private System.Windows.Forms.Button butLine;
         private System.Windows.Forms.Button butCircle;
         private System.Windows.Forms.Button butTriangle;
@@ -389,6 +413,8 @@
         private System.Windows.Forms.Button butSaveImage;
         private System.Windows.Forms.HScrollBar hScrollDotesPerSec;
         private System.Windows.Forms.Label labelDotesPerSec;
+        private PictureBox pictureBoxImage;
+        private Panel panelPaint;
     }
 }
 
