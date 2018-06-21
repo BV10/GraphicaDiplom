@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WindowsFormsApplication2.MyFigures
 {
-    struct Circle
+    public struct Circle
     {
-        public Point center;
-        public int radius;
+        public Point center { get; set; }
+        public int radius { get; set; }
     }
 }

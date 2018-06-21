@@ -75,7 +75,7 @@
             this.Controls.Add(this.tBoxSizeOfSquare);
             this.Controls.Add(this.label1);
             this.Name = "FormSizeOfSquare";
-            this.Text = "FormSizeOfSquare";
+            this.Text = "Размер квадрата";
             this.ResumeLayout(false);
             this.PerformLayout();
 

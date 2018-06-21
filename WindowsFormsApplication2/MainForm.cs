@@ -964,7 +964,7 @@ namespace WindowsFormsApplication2
 
         private void инструкцияToolStripMenuItem_Click(object sender, EventArgs e)
         {           
-            Process.Start("notepad.exe", Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).FullName).FullName + "\\Intstruction.txt");
+            Process.Start("notepad.exe", Directory.GetCurrentDirectory() + "\\Intstruction.txt");
         }
 
         private void разработчикToolStripMenuItem_Click(object sender, EventArgs e)

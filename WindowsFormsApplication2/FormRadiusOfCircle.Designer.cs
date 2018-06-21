@@ -58,11 +58,11 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(90, 25);
+            this.label1.Location = new System.Drawing.Point(74, 25);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(181, 18);
+            this.label1.Size = new System.Drawing.Size(232, 18);
             this.label1.TabIndex = 3;
-            this.label1.Text = "Укажите радиус круга";
+            this.label1.Text = "Укажите радиус окружности";
             // 
             // FormRadiusOfCircle
             // 
@@ -73,7 +73,7 @@
             this.Controls.Add(this.tBoxRadius);
             this.Controls.Add(this.label1);
             this.Name = "FormRadiusOfCircle";
-            this.Text = "FormRadiusOfCircle";
+            this.Text = "Радиус окружности";
             this.ResumeLayout(false);
             this.PerformLayout();
 

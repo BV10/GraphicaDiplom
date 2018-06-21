@@ -43,6 +43,7 @@ namespace WindowsFormsApplication2
             this.контактыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.разработчикToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.контактыToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.инструкцияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.butColor = new System.Windows.Forms.Button();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.butClear = new System.Windows.Forms.Button();
@@ -59,7 +60,6 @@ namespace WindowsFormsApplication2
             this.labelDotesPerSec = new System.Windows.Forms.Label();
             this.pictureBoxImage = new System.Windows.Forms.PictureBox();
             this.panelPaint = new System.Windows.Forms.Panel();
-            this.инструкцияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxImage)).BeginInit();
             this.panelPaint.SuspendLayout();
@@ -85,7 +85,7 @@ namespace WindowsFormsApplication2
             this.butCircle.Name = "butCircle";
             this.butCircle.Size = new System.Drawing.Size(150, 25);
             this.butCircle.TabIndex = 2;
-            this.butCircle.Text = "Круг";
+            this.butCircle.Text = "Окружность";
             this.butCircle.UseVisualStyleBackColor = true;
             this.butCircle.Click += new System.EventHandler(this.butCircle_Click);
             // 
@@ -170,6 +170,13 @@ namespace WindowsFormsApplication2
             this.контактыToolStripMenuItem1.Size = new System.Drawing.Size(144, 22);
             this.контактыToolStripMenuItem1.Text = "Контакты";
             this.контактыToolStripMenuItem1.Click += new System.EventHandler(this.контактыToolStripMenuItem1_Click);
+            // 
+            // инструкцияToolStripMenuItem
+            // 
+            this.инструкцияToolStripMenuItem.Name = "инструкцияToolStripMenuItem";
+            this.инструкцияToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.инструкцияToolStripMenuItem.Text = "Инструкция";
+            this.инструкцияToolStripMenuItem.Click += new System.EventHandler(this.инструкцияToolStripMenuItem_Click);
             // 
             // butColor
             // 
@@ -344,13 +351,6 @@ namespace WindowsFormsApplication2
             this.panelPaint.Name = "panelPaint";
             this.panelPaint.Size = new System.Drawing.Size(945, 479);
             this.panelPaint.TabIndex = 0;
-            // 
-            // инструкцияToolStripMenuItem
-            // 
-            this.инструкцияToolStripMenuItem.Name = "инструкцияToolStripMenuItem";
-            this.инструкцияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.инструкцияToolStripMenuItem.Text = "Инструкция";
-            this.инструкцияToolStripMenuItem.Click += new System.EventHandler(this.инструкцияToolStripMenuItem_Click);
             // 
             // MainForm
             // 

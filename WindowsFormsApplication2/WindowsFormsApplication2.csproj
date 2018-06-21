@@ -100,6 +100,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\Debug\Intstruction.txt" />
+    <Content Include="bin\Release\Intstruction.txt" />
     <Content Include="Intstruction.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
