@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +22,7 @@ using WindowsFormsApplication2.MyFigures;
 //HACK: регулировка толщины линий
 //HACK: сохранять изображения
 //HACK: масштабирование
-//TODO: окошко для демонстрации работы
+//HACK: окошко для демонстрации работы
 //TODO: scaling image
 //UNDONE: срок -пятница
 //HACK: количество точек за секунду
@@ -730,27 +733,6 @@ namespace WindowsFormsApplication2
 
         }
 
-        //private void tBoxDotesPerSec_TextChanged(object sender, EventArgs e)
-        //{
-        //    if (tBoxDotesPerSec.Text == string.Empty) // wait input
-        //        return;
-
-        //    try
-        //    {
-        //        DotesPerSec = uint.Parse(tBoxDotesPerSec.Text);
-
-        //        MillisecOnDote = 1000 / (int)DotesPerSec;// millisec on dote
-        //        if (MillisecOnDote < 1)
-        //            throw new Exception("Notvalid value of dotes per sec");
-        //        timer.Interval = MillisecOnDote;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        tBoxDotesPerSec.Text = DotesPerSecond.ToString();
-        //        MessageBox.Show("Not valid value of dotes per sec");
-        //    }
-        //}
-
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // max speed drawing 
@@ -978,6 +960,11 @@ namespace WindowsFormsApplication2
         private void pictureBoxImage_Resize_1(object sender, EventArgs e)
         {
             g = pictureBoxImage.CreateGraphics();
+        }
+
+        private void инструкцияToolStripMenuItem_Click(object sender, EventArgs e)
+        {           
+            Process.Start("notepad.exe", Directory.GetParent(Directory.GetParent(Directory.GetCurrentDirectory()).FullName).FullName + "\\Intstruction.txt");
         }
 
         private void разработчикToolStripMenuItem_Click(object sender, EventArgs e)

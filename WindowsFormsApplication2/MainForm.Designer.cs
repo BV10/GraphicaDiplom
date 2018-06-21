@@ -59,6 +59,7 @@ namespace WindowsFormsApplication2
             this.labelDotesPerSec = new System.Windows.Forms.Label();
             this.pictureBoxImage = new System.Windows.Forms.PictureBox();
             this.panelPaint = new System.Windows.Forms.Panel();
+            this.инструкцияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxImage)).BeginInit();
             this.panelPaint.SuspendLayout();
@@ -150,7 +151,8 @@ namespace WindowsFormsApplication2
             // 
             this.контактыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.разработчикToolStripMenuItem,
-            this.контактыToolStripMenuItem1});
+            this.контактыToolStripMenuItem1,
+            this.инструкцияToolStripMenuItem});
             this.контактыToolStripMenuItem.Name = "контактыToolStripMenuItem";
             this.контактыToolStripMenuItem.Size = new System.Drawing.Size(96, 20);
             this.контактыToolStripMenuItem.Text = "О Программе";
@@ -343,6 +345,13 @@ namespace WindowsFormsApplication2
             this.panelPaint.Size = new System.Drawing.Size(945, 479);
             this.panelPaint.TabIndex = 0;
             // 
+            // инструкцияToolStripMenuItem
+            // 
+            this.инструкцияToolStripMenuItem.Name = "инструкцияToolStripMenuItem";
+            this.инструкцияToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.инструкцияToolStripMenuItem.Text = "Инструкция";
+            this.инструкцияToolStripMenuItem.Click += new System.EventHandler(this.инструкцияToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
@@ -415,6 +424,7 @@ namespace WindowsFormsApplication2
         private System.Windows.Forms.Label labelDotesPerSec;
         private PictureBox pictureBoxImage;
         private Panel panelPaint;
+        private ToolStripMenuItem инструкцияToolStripMenuItem;
     }
 }
 
