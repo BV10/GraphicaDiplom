@@ -309,8 +309,8 @@ namespace WindowsFormsApplication2.MyFigures
 
             lock (block)
             {
-
-                for (int i = 0; i < PointsCalculating.Count; i++) // last points
+                int countCalculating = pointsCalculating.Count;
+                for (int i = 0; i < countCalculating; i++) // last points
                 {
                     PointsForUser.Enqueue(PointsCalculating.Dequeue()); // points for user
                 }
@@ -424,8 +424,8 @@ namespace WindowsFormsApplication2.MyFigures
             }
             lock (block)
             {
-
-                for (int i = 0; i < PointsCalculating.Count; i++) // last points
+                int countCalculating = PointsCalculating.Count;
+                for (int i = 0; i < countCalculating; i++) // last points
                 {
                     PointsForUser.Enqueue(PointsCalculating.Dequeue()); // points for user
                 }
