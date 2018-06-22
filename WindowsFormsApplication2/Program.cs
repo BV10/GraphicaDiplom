@@ -8,6 +8,14 @@ namespace WindowsFormsApplication2
 {
     static class Program
     {
+        public static MainForm MainForm
+        {
+            get => default(MainForm);
+            set
+            {
+            }
+        }
+
         /// <summary>
         /// Главная точка  входа для приложения.
         /// </summary>

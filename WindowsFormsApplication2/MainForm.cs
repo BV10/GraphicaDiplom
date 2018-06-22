@@ -1079,6 +1079,44 @@ namespace WindowsFormsApplication2
             butBuildChoseFigure.Focus();
         }
 
+        public FormRadiusOfCircle FormRadiusOfCircle
+        {
+            get => default(FormRadiusOfCircle);
+            set
+            {
+            }
+        }
 
+        public FormSizeOfSquare FormSizeOfSquare
+        {
+            get => default(FormSizeOfSquare);
+            set
+            {
+            }
+        }
+
+        internal DescriptionWork DescriptionWork
+        {
+            get => default(DescriptionWork);
+            set
+            {
+            }
+        }
+
+        internal Figure Figure
+        {
+            get => default(Figure);
+            set
+            {
+            }
+        }
+
+        internal CalcPointsFigureAsync CalcPointsFigureAsync
+        {
+            get => default(CalcPointsFigureAsync);
+            set
+            {
+            }
+        }
     }
 }

@@ -441,5 +441,13 @@ namespace WindowsFormsApplication2.MyFigures
             t1 = t2;
             t2 = temp;
         }
+
+        public Circle Circle
+        {
+            get => default(Circle);
+            set
+            {
+            }
+        }
     }
 }
