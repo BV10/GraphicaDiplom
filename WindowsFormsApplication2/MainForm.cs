@@ -209,66 +209,119 @@ namespace WindowsFormsApplication2
             return image;
         }
 
-        Bitmap floodFill(Bitmap sourceImage, int x, int y, Color oldcolor, Color newcolor)
+        private Bitmap FloodFill(Bitmap sourceImage, Point pt, Color targetColor, Color replacementColor)
         {
             Bitmap bmp = (Bitmap)sourceImage.Clone();
 
-            Stack<Point> stackPixels = new Stack<Point>();
-
-            //1.Поместить затравочный пиксел в стек;
-            stackPixels.Push(new Point(x, y));
-
-            Point currentPixel;
-            do
+            targetColor = bmp.GetPixel(pt.X, pt.Y);
+            if (targetColor.ToArgb().Equals(replacementColor.ToArgb()))
             {
-                //2.Извлечь пиксел из стека;
-                currentPixel = stackPixels.Pop();
-                //3.Присвоить пикселу требуемое значение(цвет внутренней области);
-                bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
-                //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
+                return bmp;
+            }
 
+            Stack<Point> pixels = new Stack<Point>();
 
-                //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
-
-                // 4.Каждый окрестный пиксел добавить в стек, если он
-
-                //4.1.Не является граничным;                
-                if (currentPixel.X - 1 > 0 && currentPixel.X - 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+            pixels.Push(pt);
+            while (pixels.Count != 0)
+            {
+                Point temp = pixels.Pop();
+                int y1 = temp.Y;
+                while (y1 >= 0 && bmp.GetPixel(temp.X, y1) == targetColor)
                 {
-                    //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
-                    if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() != newcolor.ToArgb())
+                    y1--;
+                }
+                y1++;
+                bool spanLeft = false;
+                bool spanRight = false;
+                while (y1 < bmp.Height && bmp.GetPixel(temp.X, y1) == targetColor)
+                {
+                    bmp.SetPixel(temp.X, y1, replacementColor);
+
+                    if (!spanLeft && temp.X > 0 && bmp.GetPixel(temp.X - 1, y1) == targetColor)
                     {
-                        stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
+                        pixels.Push(new Point(temp.X - 1, y1));
+                        spanLeft = true;
                     }
+                    else if (spanLeft && temp.X - 1 == 0 && bmp.GetPixel(temp.X - 1, y1) != targetColor)
+                    {
+                        spanLeft = false;
+                    }
+                    if (!spanRight && temp.X < bmp.Width - 1 && bmp.GetPixel(temp.X + 1, y1) == targetColor)
+                    {
+                        pixels.Push(new Point(temp.X + 1, y1));
+                        spanRight = true;
+                    }
+                    else if (spanRight && temp.X < bmp.Width - 1 && bmp.GetPixel(temp.X + 1, y1) != targetColor)
+                    {
+                        spanRight = false;
+                    }
+                    y1++;
                 }
 
-                if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() != newcolor.ToArgb())
-                    {
-                        stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
-                    }
-                }
-
-                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() != newcolor.ToArgb())
-                    {
-                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
-                    }
-                }
-
-                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() != newcolor.ToArgb())
-                    {
-                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
-                    }
-                }
-            } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2    
-
+            }
             return bmp;
         }
+
+        //Bitmap floodFill(Bitmap sourceImage, int x, int y, Color oldcolor, Color newcolor)
+        //{
+        //    Bitmap bmp = (Bitmap)sourceImage.Clone();
+
+        //    Stack<Point> stackPixels = new Stack<Point>();
+
+        //    //1.Поместить затравочный пиксел в стек;
+        //    stackPixels.Push(new Point(x, y));
+
+        //    Point currentPixel;
+        //    do
+        //    {
+        //        //2.Извлечь пиксел из стека;
+        //        currentPixel = stackPixels.Pop();
+        //        //3.Присвоить пикселу требуемое значение(цвет внутренней области);
+        //        bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
+        //        //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
+
+
+        //        //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
+
+        //        // 4.Каждый окрестный пиксел добавить в стек, если он
+
+        //        //4.1.Не является граничным;                
+        //        if (currentPixel.X - 1 > 0 && currentPixel.X - 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+        //        {
+        //            //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
+        //            if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() != newcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
+        //            }
+        //        }
+
+        //        if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+        //        {
+        //            if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() != newcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
+        //            }
+        //        }
+
+        //        if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
+        //        {
+        //            if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() != newcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
+        //            }
+        //        }
+
+        //        if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
+        //        {
+        //            if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb() && bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() != newcolor.ToArgb())
+        //            {
+        //                stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
+        //            }
+        //        }
+        //    } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2    
+
+        //    return bmp;
+        //}
 
         void BresenhamCircle(int x0, int y0, int radius)
         {
@@ -493,8 +546,8 @@ namespace WindowsFormsApplication2
                 timer.Stop();
             }
 
-            pictureBoxImage.Refresh();
-            pictureBoxImage.BackgroundImage = null;
+            pictureBoxImage.Image = null;
+            pictureBoxImage.Refresh();            
             Point CurrentPoint_1 = new Point(0, 0);
             Point CurrentPoint_2 = new Point(0, 0);
             Point CurrentPoint_3 = new Point(0, 0);
@@ -753,9 +806,11 @@ namespace WindowsFormsApplication2
 
                     bmpOfPanel.SetPixel(lastFillPoint.X, lastFillPoint.Y, colorBeforePouring);
 
-                    Bitmap newImageForPanel = floodFill(bmpOfPanel, lastFillPoint.X, lastFillPoint.Y, colorBeforePouring, ColorPouring);
-
+                    Bitmap newImageForPanel = FloodFill(bmpOfPanel, new Point(lastFillPoint.X, lastFillPoint.Y), colorBeforePouring, ColorPouring);//poure right part
                     pictureBoxImage.Image = newImageForPanel;
+
+                   newImageForPanel = FloodFill(newImageForPanel, new Point(lastFillPoint.X-2, lastFillPoint.Y), colorBeforePouring, ColorPouring); // poure left part 
+                   pictureBoxImage.Image = newImageForPanel;
 
                     timer.Stop();// end drawing stop
 
@@ -769,6 +824,16 @@ namespace WindowsFormsApplication2
             }
             else
             {
+                //------------------ tested code ---------------
+                //if(taskCalcPoints.IsCompleted)
+                //{
+                //    calculatedPoints = calcPointsAsync.PointsForUser;
+
+                //    foreach (var point in calculatedPoints)
+                //    {
+                //        g.FillRectangle(new SolidBrush(ColorPouring), point.X, point.Y, 1, 1);
+                //    }
+                //}
 
                 if (calculatedPoints == null || calculatedPoints.Count == 0) // empty or null accumulated points
                 {
@@ -867,7 +932,7 @@ namespace WindowsFormsApplication2
                 if (timer.Interval == Max_Speed_Draw_MillisecOnDote) // fast drawing
                 {
                     colorBeforePouring = bmpOfPanel.GetPixel(e.Location.X, e.Location.Y);
-                    Bitmap newImageForPanel = floodFill(bmpOfPanel, e.Location.X, e.Location.Y, bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
+                    Bitmap newImageForPanel = FloodFill(bmpOfPanel, new Point(e.Location.X, e.Location.Y) , bmpOfPanel.GetPixel(e.Location.X, e.Location.Y), ColorPouring);
                     pictureBoxImage.Image = newImageForPanel;
 
 

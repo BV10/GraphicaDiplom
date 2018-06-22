@@ -40,10 +40,13 @@ namespace WindowsFormsApplication2.MyFigures
             }
         }
 
+        public Queue<Point> PointsForUser { get => pointsForUser; set => pointsForUser = value; }
+        public Queue<Point> PointsCalculating { get => pointsCalculating; set => pointsCalculating = value; }
+
         public async Task CalcPolygon(List<Point> points)
         {
-            pointsForUser = new Queue<Point>();
-            pointsCalculating = new Queue<Point>();
+            PointsForUser = new Queue<Point>();
+            PointsCalculating = new Queue<Point>();
             EndCalcPoints = false; // not end of calc
 
             CancellationTokenSource = new CancellationTokenSource();
@@ -55,8 +58,8 @@ namespace WindowsFormsApplication2.MyFigures
         public async Task CalcCircle(Circle circle)
         {
             //Min_Accumulating_Points = 15;
-            pointsForUser = new Queue<Point>();
-            pointsCalculating = new Queue<Point>();
+            PointsForUser = new Queue<Point>();
+            PointsCalculating = new Queue<Point>();
             EndCalcPoints = false; // not end of calc
 
             CancellationTokenSource = new CancellationTokenSource();
@@ -67,30 +70,32 @@ namespace WindowsFormsApplication2.MyFigures
 
         public async Task PouringArea(Bitmap bmp, int x, int y, Color oldcolor, Color newcolor)
         {
-            pointsForUser = new Queue<Point>();
-            pointsCalculating = new Queue<Point>();
+            PointsForUser = new Queue<Point>();
+            PointsCalculating = new Queue<Point>();
             EndCalcPoints = false; // not end of calc
 
             CancellationTokenSource = new CancellationTokenSource();
             var token = CancellationTokenSource.Token;
 
-            await Task.Factory.StartNew(() => CalcPouringArea(bmp, x, y, oldcolor, newcolor, token), token);
+            await Task.Factory.StartNew(() => CalcPouringArea(bmp, new Point(x, y), oldcolor, newcolor, token), token);
         }
 
-        private void CalcPouringArea(Bitmap sourceImage, int x, int y, Color oldcolor, Color newcolor, CancellationToken token)
+        private void CalcPouringArea(Bitmap sourceImage, Point pt, Color targetColor, Color replacementColor, CancellationToken token)
         {
             Bitmap bmp = (Bitmap)sourceImage.Clone();
 
-            Stack<Point> stackPixels = new Stack<Point>();
+            targetColor = bmp.GetPixel(pt.X, pt.Y);
+            if (targetColor.ToArgb().Equals(replacementColor.ToArgb()))
+            {
+                return;
+            }
 
-            //1.Поместить затравочный пиксел в стек;
-            stackPixels.Push(new Point(x, y));
+            Stack<Point> pixels = new Stack<Point>();
 
-            // save first point pixel at queue
-            pointsCalculating.Enqueue(new Point(x, y));
+            PointsCalculating.Enqueue(pt);
+            pixels.Push(pt);
 
-            Point currentPixel;
-            do
+            while (pixels.Count != 0)
             {
                 if (token.IsCancellationRequested) // cancel task
                 {
@@ -98,80 +103,161 @@ namespace WindowsFormsApplication2.MyFigures
                     token.ThrowIfCancellationRequested();
                 }
 
-                if (pointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
+
+
+                Point temp = pixels.Pop();
+                int y1 = temp.Y;
+                while (y1 >= 0 && bmp.GetPixel(temp.X, y1) == targetColor)
                 {
-                    lock (block)
+                    y1--;
+                }
+                y1++;
+                bool spanLeft = false;
+                bool spanRight = false;
+                while (y1 < bmp.Height && bmp.GetPixel(temp.X, y1) == targetColor)
+                {
+                    if (pointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
                     {
-                        for (int i = 0; i < Min_Accumulating_Points; i++)
+                        lock (block)
                         {
-                            pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                            for (int i = 0; i < Min_Accumulating_Points; i++)
+                            {
+                                PointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                            }
                         }
                     }
-                }
 
-                //2.Извлечь пиксел из стека;
-                currentPixel = stackPixels.Pop();
+                    bmp.SetPixel(temp.X, y1, replacementColor);
+                    PointsCalculating.Enqueue(new Point(temp.X, y1));
 
-
-
-                //3.Присвоить пикселу требуемое значение(цвет внутренней области);
-                bmp.SetPixel(currentPixel.X, currentPixel.Y, newcolor);
-                //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
-
-
-                //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
-
-                // 4.Каждый окрестный пиксел добавить в стек, если он
-
-                //4.1.Не является граничным;                
-                if (currentPixel.X - 1 > 0 && currentPixel.X - 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
-                {
-                    //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
-                    if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    if (!spanLeft && temp.X > 0 && bmp.GetPixel(temp.X - 1, y1) == targetColor)
                     {
-                        stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
-                        pointsCalculating.Enqueue(new Point(currentPixel.X - 1, currentPixel.Y));
+                        pixels.Push(new Point(temp.X - 1, y1));
+                        //pointsCalculating.Enqueue(new Point(temp.X - 1, y1));
+                        spanLeft = true;
                     }
-                }
-
-                if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == oldcolor.ToArgb())
+                    else if (spanLeft && temp.X - 1 == 0 && bmp.GetPixel(temp.X - 1, y1) != targetColor)
                     {
-                        stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
-                        pointsCalculating.Enqueue(new Point(currentPixel.X + 1, currentPixel.Y));
+                        spanLeft = false;
                     }
-                }
-
-                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == oldcolor.ToArgb())
+                    if (!spanRight && temp.X < bmp.Width - 1 && bmp.GetPixel(temp.X + 1, y1) == targetColor)
                     {
-                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
-                        pointsCalculating.Enqueue(new Point(currentPixel.X, currentPixel.Y - 1));
+                        pixels.Push(new Point(temp.X + 1, y1));
+                        //pointsCalculating.Enqueue(new Point(temp.X + 1, y1));
+                        spanRight = true;
                     }
-                }
-
-                if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
-                {
-                    if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == oldcolor.ToArgb())
+                    else if (spanRight && temp.X < bmp.Width - 1 && bmp.GetPixel(temp.X + 1, y1) != targetColor)
                     {
-                        stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
-                        pointsCalculating.Enqueue(new Point(currentPixel.X, currentPixel.Y + 1));
+                        spanRight = false;
                     }
+                    y1++;
                 }
-            } while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2   
-
+            }
 
             lock (block)
             {
-                EndCalcPoints = true; // end of calculating
-
-                for (int i = 0; i < pointsCalculating.Count; i++) // last points
+                int countCalculating = pointsCalculating.Count;
+                for (int i = 0; i < countCalculating; i++) // last points
                 {
-                    pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                    PointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
                 }
+
+                EndCalcPoints = true; // end of calculating
             }
+
+            //Bitmap bmp = (Bitmap)sourceImage.Clone();
+
+            //Stack<Point> stackPixels = new Stack<Point>();
+
+            ////1.Поместить затравочный пиксел в стек;
+            //stackPixels.Push(new Point(pt.X, pt.Y));
+
+            //// save first point pixel at queue
+            //pointsCalculating.Enqueue(new Point(pt.X, pt.Y));
+
+            //Point currentPixel;
+            //do
+            //{
+            //    if (token.IsCancellationRequested) // cancel task
+            //    {
+            //        EndCalcPoints = true;
+            //        token.ThrowIfCancellationRequested();
+            //    }
+
+            //    if (pointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
+            //    {
+            //        lock (block)
+            //        {
+            //            for (int i = 0; i < Min_Accumulating_Points; i++)
+            //            {
+            //                pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+            //            }
+            //        }
+            //    }
+
+            //    //2.Извлечь пиксел из стека;
+            //    currentPixel = stackPixels.Pop();
+
+
+
+            //    //3.Присвоить пикселу требуемое значение(цвет внутренней области);
+            //    bmp.SetPixel(currentPixel.X, currentPixel.Y, targetColor);
+            //    //gr.DrawLine(currentPen, new Point(currentPixel.X, currentPixel.Y), new Point(currentPixel.X, currentPixel.Y));
+
+
+            //    //grPanel.DrawLine(currentPen, currentPixel.X, currentPixel.Y, currentPixel.X, currentPixel.Y);
+
+            //    // 4.Каждый окрестный пиксел добавить в стек, если он
+
+            //    //4.1.Не является граничным;                
+            //    if (currentPixel.X - 1 > 0 && currentPixel.X - 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+            //    {
+            //        //4.2.Не обработан ранее(т.е.его цвет отличается от цвета границы или цвета внутренней области);                   
+            //        if (bmp.GetPixel(currentPixel.X - 1, currentPixel.Y).ToArgb() == replacementColor.ToArgb())
+            //        {
+            //            stackPixels.Push(new Point(currentPixel.X - 1, currentPixel.Y));
+            //            pointsCalculating.Enqueue(new Point(currentPixel.X - 1, currentPixel.Y));
+            //        }
+            //    }
+
+            //    if (currentPixel.X + 1 > 0 && currentPixel.X + 1 < bmp.Width && currentPixel.Y > 0 && currentPixel.Y < bmp.Height)
+            //    {
+            //        if (bmp.GetPixel(currentPixel.X + 1, currentPixel.Y).ToArgb() == replacementColor.ToArgb())
+            //        {
+            //            stackPixels.Push(new Point(currentPixel.X + 1, currentPixel.Y));
+            //            pointsCalculating.Enqueue(new Point(currentPixel.X + 1, currentPixel.Y));
+            //        }
+            //    }
+
+            //    if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y - 1 > 0 && currentPixel.Y - 1 < bmp.Height)
+            //    {
+            //        if (bmp.GetPixel(currentPixel.X, currentPixel.Y - 1).ToArgb() == replacementColor.ToArgb())
+            //        {
+            //            stackPixels.Push(new Point(currentPixel.X, currentPixel.Y - 1));
+            //            pointsCalculating.Enqueue(new Point(currentPixel.X, currentPixel.Y - 1));
+            //        }
+            //    }
+
+            //    if (currentPixel.X > 0 && currentPixel.X < bmp.Width && currentPixel.Y + 1 > 0 && currentPixel.Y + 1 < bmp.Height)
+            //    {
+            //        if (bmp.GetPixel(currentPixel.X, currentPixel.Y + 1).ToArgb() == replacementColor.ToArgb())
+            //        {
+            //            stackPixels.Push(new Point(currentPixel.X, currentPixel.Y + 1));
+            //            pointsCalculating.Enqueue(new Point(currentPixel.X, currentPixel.Y + 1));
+            //        }
+            //    }
+            //} while (stackPixels.Count != 0); //5.Если стек не пуст, перейти к шагу 2   
+
+
+            //lock (block)
+            //{
+            //    EndCalcPoints = true; // end of calculating
+
+            //    for (int i = 0; i < pointsCalculating.Count; i++) // last points
+            //    {
+            //        pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+            //    }
+            //}
         }
 
         private void CalcCirclePoints(Circle circle, CancellationToken token)
@@ -189,26 +275,26 @@ namespace WindowsFormsApplication2.MyFigures
                     token.ThrowIfCancellationRequested();
                 }
 
-                if (pointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
+                if (PointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
                 {
                     lock (block)
                     {
                         for (int i = 0; i < Min_Accumulating_Points; i++)
                         {
-                            pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                            PointsForUser.Enqueue(PointsCalculating.Dequeue()); // points for user
                         }
                     }
                 }
 
                 // add dote at points calc
-                pointsCalculating.Enqueue(new Point(x + x0, y + y0));
-                pointsCalculating.Enqueue(new Point(y + x0, x + y0));
-                pointsCalculating.Enqueue(new Point(-x + x0, y + y0));
-                pointsCalculating.Enqueue(new Point(-y + x0, x + y0));
-                pointsCalculating.Enqueue(new Point(-x + x0, -y + y0));
-                pointsCalculating.Enqueue(new Point(-y + x0, -x + y0));
-                pointsCalculating.Enqueue(new Point(x + x0, -y + y0));
-                pointsCalculating.Enqueue(new Point(y + x0, -x + y0));
+                PointsCalculating.Enqueue(new Point(x + x0, y + y0));
+                PointsCalculating.Enqueue(new Point(y + x0, x + y0));
+                PointsCalculating.Enqueue(new Point(-x + x0, y + y0));
+                PointsCalculating.Enqueue(new Point(-y + x0, x + y0));
+                PointsCalculating.Enqueue(new Point(-x + x0, -y + y0));
+                PointsCalculating.Enqueue(new Point(-y + x0, -x + y0));
+                PointsCalculating.Enqueue(new Point(x + x0, -y + y0));
+                PointsCalculating.Enqueue(new Point(y + x0, -x + y0));
                 y++;
                 if (radiusError < 0)
                 {
@@ -223,12 +309,13 @@ namespace WindowsFormsApplication2.MyFigures
 
             lock (block)
             {
-                EndCalcPoints = true; // end of calculating
 
-                for (int i = 0; i < pointsCalculating.Count; i++) // last points
+                for (int i = 0; i < PointsCalculating.Count; i++) // last points
                 {
-                    pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                    PointsForUser.Enqueue(PointsCalculating.Dequeue()); // points for user
                 }
+
+                EndCalcPoints = true; // end of calculating
             }
         }
 
@@ -237,28 +324,27 @@ namespace WindowsFormsApplication2.MyFigures
         {
             lock (block)
             {
-                if (pointsForUser.Count >= Min_Accumulating_Points)
-                {
-                    Queue<Point> retPoints = new Queue<Point>();
-                    if (pointsForUser.Count != 0)
-                    {
-                        for (int i = 0; i < Min_Accumulating_Points && i < pointsForUser.Count; i++) // accumulated points in result and return
-                            retPoints.Enqueue(pointsForUser.Dequeue());
-                    }
-                    return retPoints;
-                }
-                else if (EndCalcPoints && pointsForUser.Count == 0) // empty
+                if (EndCalcPoints && PointsForUser.Count == 0) // empty
                 {
                     return null;
                 }
                 else if (EndCalcPoints) // get last points
                 {
                     Queue<Point> retPoints = new Queue<Point>();
-                    for (int i = 0; i < pointsForUser.Count; i++) // accumulated points in result and return
-                        retPoints.Enqueue(pointsForUser.Dequeue());
+                    for (int i = 0; i < PointsForUser.Count; i++) // accumulated points in result and return
+                        retPoints.Enqueue(PointsForUser.Dequeue());
                     return retPoints;
                 }
-
+                else if (PointsForUser.Count >= Min_Accumulating_Points)
+                {
+                    Queue<Point> retPoints = new Queue<Point>();
+                    if (PointsForUser.Count != 0)
+                    {
+                        for (int i = 0; i < Min_Accumulating_Points && i < PointsForUser.Count; i++) // accumulated points in result and return
+                            retPoints.Enqueue(PointsForUser.Dequeue());
+                    }
+                    return retPoints;
+                }
             }
             return null;
         }
@@ -314,15 +400,15 @@ namespace WindowsFormsApplication2.MyFigures
                     }
 
                     // add dote at points calc
-                    pointsCalculating.Enqueue(new Point(steep ? y : x, steep ? x : y)); // Не забываем вернуть координаты на место
+                    PointsCalculating.Enqueue(new Point(steep ? y : x, steep ? x : y)); // Не забываем вернуть координаты на место
 
-                    if (pointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
+                    if (PointsCalculating.Count >= Min_Accumulating_Points) // accumulate 10 dotes add them to user
                     {
                         lock (block)
                         {
                             for (int i = 0; i < Min_Accumulating_Points; i++)
                             {
-                                pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                                PointsForUser.Enqueue(PointsCalculating.Dequeue()); // points for user
                             }
                         }
                     }
@@ -338,12 +424,13 @@ namespace WindowsFormsApplication2.MyFigures
             }
             lock (block)
             {
-                EndCalcPoints = true; // end of calculating
 
-                for (int i = 0; i < pointsCalculating.Count; i++) // last points
+                for (int i = 0; i < PointsCalculating.Count; i++) // last points
                 {
-                    pointsForUser.Enqueue(pointsCalculating.Dequeue()); // points for user
+                    PointsForUser.Enqueue(PointsCalculating.Dequeue()); // points for user
                 }
+
+                EndCalcPoints = true; // end of calculating
             }
 
         }
